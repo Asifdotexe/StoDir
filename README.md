@@ -53,3 +53,23 @@ To run this project, follow these steps:
    git clone https://github.com/your-username/stock-market-prediction-model.git
    cd stock-market-prediction-model
    ```
+   
+2. **Install Dependencies**:
+Make sure you have Python installed, then install the necessary packages:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   
+3. **Run the Model**:
+You can run the Jupyter notebooks provided in the repository to perform data preprocessing, model training, and visualization.
+
+## Results
+
+The best performing model was the RandomForestRegressor with the following parameters:
+   ```
+   n_estimators: 100
+   max_depth: 20
+   criterion: 'poisson'
+   ```
+
+The model achieved a Mean Squared Error (MSE) of **-13.826217** on the test set.
