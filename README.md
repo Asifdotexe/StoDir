@@ -8,7 +8,7 @@ The objective of this project is to create a stock market prediction model that 
 
 ### 1. Data Collection
 
-Data collection is a critical first step in the project. We gathered historical stock prices for the company Apple Inc. (AAPL) over the past several years. The data was sourced from [Yahoo Finance](https://finance.yahoo.com/) and includes the following features:
+Data collection is a critical first step in the project. We gathered historical stock prices for the company Apple Inc. (AAPL) over the past several years. The data was sourced from Google Finance and includes the following features:
 - Date
 - Open
 - High
@@ -16,6 +16,8 @@ Data collection is a critical first step in the project. We gathered historical 
 - Close
 - Volume
 - Adjusted Close
+
+[How to extract the data](https://support.google.com/docs/answer/3093281?hl=en-GB)
 
 ### 2. Feature Engineering
 
