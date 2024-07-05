@@ -1,75 +1,103 @@
-# Stock Market Prediction Model
+# Stock Price Prediction
 
-## Objective
+This project implements a stock price prediction model that forecasts whether the stock price will go up or down based on historical data. The model is built using Python and leverages various data processing, visualization, and machine learning techniques.
 
-The objective of this project is to create a stock market prediction model that forecasts future trends of stock prices. This model aims to provide accurate predictions to assist in making informed trading decisions.
+## Table of Contents
 
-## Project Workflow
+- [Introduction](#introduction)
+- [Dataset](#dataset)
+- [Data Analysis and Visualization](#data-analysis-and-visualization)
+- [Feature Engineering](#feature-engineering)
+- [Model Training](#model-training)
+- [Backtesting](#backtesting)
+- [Results](#results)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
 
-### 1. Data Collection
+## Introduction
 
-Data collection is a critical first step in the project. We gathered historical stock prices for the company Apple Inc. (AAPL) over the past several years. The data was sourced from Google Finance and includes the following features:
-- Date
-- Open
-- High
-- Low
-- Close
-- Volume
-- Adjusted Close
+The goal of this project is to predict stock price movements for any particular stock. The model suggests whether the stock price will increase or decrease in the near future based on historical stock price data. This project uses various Python libraries including Pandas, NumPy, Matplotlib, Seaborn, and scikit-learn.
 
-[How to extract the data](https://support.google.com/docs/answer/3093281?hl=en-GB)
+## Dataset
 
-### 2. Feature Engineering
+The dataset used in this project is historical stock price data for Apple Inc. from January 1, 2000, to June 28, 2024. The data is sourced from Yahoo Finance using the `yfinance` library.
 
-Feature engineering involves transforming raw data into meaningful features that improve the performance of the machine learning model. For this project, we performed the following steps:
-- **Date Parsing**: Parsed the 'Date' column to a datetime format.
-- **Moving Averages**: Calculated moving averages (e.g., 7-day, 30-day) to capture trends and smooth out short-term fluctuations.
-- **Lag Features**: Created lag features to incorporate past stock prices into the model.
+The dataset includes the following columns:
+- `open`: The opening price of the stock.
+- `high`: The highest price of the stock during the trading day.
+- `low`: The lowest price of the stock during the trading day.
+- `close`: The closing price of the stock.
+- `volume`: The total number of shares traded during the trading day.
+- `dividends`: Payments made to shareholders.
+- `stock splits`: Adjustments in the number of shares.
 
-### 3. Model Selection
+## Data Analysis and Visualization
 
-We employed a grid search with cross-validation to select the best regression model for the task. The models considered include:
-- Linear Regression
-- Ridge Regression
-- Lasso Regression
-- Decision Tree Regressor
-- Random Forest Regressor
-- Support Vector Regressor
+Various visualizations are created to understand the data better:
+- Line plots for `open`, `high`, `low`, `close`, and `volume` over time.
+- Histograms to understand the distribution of each metric.
+- Candlestick chart for the last 30 days of stock prices.
+- Correlation heatmap to understand the relationships between different features.
 
-### 4. Model Training
+## Feature Engineering
 
-The model training process involves splitting the data into training and testing sets, training the model on the training set, and evaluating its performance on the testing set. We used Mean Squared Error (MSE) as the performance metric. The model with the lowest MSE was chosen as the best model.
+New features are created to improve the model's performance:
+- `tomorrow`: The closing price of the next day.
+- `target`: A flag indicating if the next day's closing price is higher than today's closing price.
+- Rolling averages and trends for different horizons (2 days, 5 days, 60 days, 250 days, 1000 days).
 
-### 5. Visualization
+## Model Training
 
-Finally, we visualized the model's predictions against the actual stock prices to assess its performance. We focused on the last 30 days of the dataset to understand the model's recent accuracy.
+A RandomForestClassifier from scikit-learn is used to train the model. The features used for training are:
+- `open`
+- `close`
+- `high`
+- `low`
+- `volume`
 
-## Installation and Usage
+The model is trained on a portion of the data and tested on the remaining data to evaluate its performance.
 
-To run this project, follow these steps:
+## Backtesting
 
-1. **Clone the Repository**:
-   ```bash
-   git clone https://github.com/your-username/stock-market-prediction-model.git
-   cd stock-market-prediction-model
-   ```
-   
-2. **Install Dependencies**:
-Make sure you have Python installed, then install the necessary packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-   
-3. **Run the Model**:
-You can run the Jupyter notebooks provided in the repository to perform data preprocessing, model training, and visualization.
+Backtesting is performed to evaluate the model's performance over time. The predictions are made iteratively on different portions of the dataset to simulate a real-world trading scenario.
 
 ## Results
 
-The best performing model was the RandomForestRegressor with the following parameters:
-   ```
-   n_estimators: 100
-   max_depth: 20
-   criterion: 'poisson'
-   ```
+The model's precision score is evaluated, and the actual vs. predicted results are visualized using bar plots and line plots.
 
-The model achieved a Mean Squared Error (MSE) of **-13.826217** on the test set.
+## Installation
+
+To run this project locally, follow these steps:
+
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/stock-price-prediction.git
+    cd stock-price-prediction
+    ```
+
+2. Create a virtual environment and activate it:
+    ```bash
+    python3 -m venv env
+    source env/bin/activate
+    ```
+
+3. Install the required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Usage
+
+To use the project, follow these steps:
+
+1. Run the Jupyter Notebook containing the code:
+    ```bash
+    jupyter notebook
+    ```
+
+2. Open the notebook and execute the cells to perform data analysis, feature engineering, model training, and backtesting.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
