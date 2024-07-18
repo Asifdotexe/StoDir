@@ -70,3 +70,11 @@ def add_features(data: pd.DataFrame, *horizons) -> pd.DataFrame:
         data[f'{horizon}_day'] = rolling_average / data['close']
     data = data.drop()
     return data
+
+def train_model(data: pd.DataFrame, ticker: str) -> RandomForestClassifier:
+    model = RandomForestClassifier(n_estimators=200,
+                                   min_samples_split=50,
+                                   random_state=42)
+    train = 
+    
+    
