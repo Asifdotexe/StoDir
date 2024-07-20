@@ -1,6 +1,6 @@
-# Stock Price Prediction
+# StoDir - Stock Direction Forecasting Model
 
-This project implements a stock price prediction model that forecasts whether the stock price will go up or down based on historical data. The model is built using Python and leverages various data processing, visualization, and machine learning techniques.
+This project implements a stock direction forecasting model that forecasts whether the stock price will go up or down based on historical data. The model is built using Python and leverages various data processing, visualization, and machine learning techniques.
 
 ## Table of Contents
 
