@@ -1,6 +1,6 @@
 # StoDir - Stock Direction Forecasting Model
 
-This project implements a stock direction forecasting model that forecasts whether the stock price will go up or down based on historical data. The model is built using Python and leverages various data processing, visualization, and machine learning techniques.
+This project implements a stock direction forecasting model that predicts whether the stock price will go up or down based on historical data. The model is built using Python and leverages various data processing, visualization, and machine learning techniques.
 
 ## Table of Contents
 
@@ -17,13 +17,11 @@ This project implements a stock direction forecasting model that forecasts wheth
 
 ## Introduction
 
-The goal of this project is to predict stock price movements for any particular stock. The model suggests whether the stock price will increase or decrease in the near future based on historical stock price data. This project uses various Python libraries including Pandas, NumPy, Matplotlib, Seaborn, and scikit-learn.
+The goal of this project is to predict stock price movements for any given stock. The model forecasts whether the stock price will increase or decrease in the near future based on historical stock price data. This project utilizes Python libraries including Pandas, NumPy, Matplotlib, Seaborn, and scikit-learn to perform data analysis, feature engineering, and model training.
 
 ## Dataset
 
-The dataset used in this project is historical stock price data for Apple Inc. from January 1, 2000, to June 28, 2024. The data is sourced from Yahoo Finance using the `yfinance` library.
-
-The dataset includes the following columns:
+The dataset used in this project consists of historical stock price data for a given stock symbol, fetched from Yahoo Finance using the `yfinance` library. The data includes the following columns:
 - `open`: The opening price of the stock.
 - `high`: The highest price of the stock during the trading day.
 - `low`: The lowest price of the stock during the trading day.
@@ -44,27 +42,22 @@ Various visualizations are created to understand the data better:
 
 New features are created to improve the model's performance:
 - `tomorrow`: The closing price of the next day.
-- `target`: A flag indicating if the next day's closing price is higher than today's closing price.
+- `target`: A binary indicator that takes the value 1 if the closing price of the next day is higher than the current closing price, and 0 otherwise.
 - Rolling averages and trends for different horizons (2 days, 5 days, 60 days, 250 days, 1000 days).
 
 ## Model Training
 
-A RandomForestClassifier from scikit-learn is used to train the model. The features used for training are:
-- `open`
-- `close`
-- `high`
-- `low`
-- `volume`
-
-The model is trained on a portion of the data and tested on the remaining data to evaluate its performance.
+A RandomForestClassifier from scikit-learn is used to train the model. The features used for training include rolling averages of closing prices over different horizons. The model is trained on a portion of the data and tested on the remaining data to evaluate its performance.
 
 ## Backtesting
 
-Backtesting is performed to evaluate the model's performance over time. The predictions are made iteratively on different portions of the dataset to simulate a real-world trading scenario.
+Backtesting is performed to evaluate the model's performance over time. Predictions are made iteratively on different portions of the dataset to simulate a real-world trading scenario. The model’s precision score is calculated and visualized alongside actual vs. predicted results.
 
 ## Results
 
-The model's precision score is evaluated, and the actual vs. predicted results are visualized using bar plots and line plots.
+The results are presented through various visualizations:
+- Line plots showing actual vs. predicted stock price movements.
+- Precision score of the model, indicating the accuracy of predictions.
 
 ## Installation
 
@@ -72,14 +65,14 @@ To run this project locally, follow these steps:
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/stock-price-prediction.git
-    cd stock-price-prediction
+    git clone https://github.com/Asifdotexe/StoDir.git
+    cd StoDir
     ```
 
 2. Create a virtual environment and activate it:
     ```bash
-    python3 -m venv env
-    source env/bin/activate
+    python3 -m venv stodir_env
+    source stodir_env/bin/activate
     ```
 
 3. Install the required dependencies:
@@ -91,12 +84,14 @@ To run this project locally, follow these steps:
 
 To use the project, follow these steps:
 
-1. Run the Jupyter Notebook containing the code:
+1. Run the script to fetch data, train the model, and make predictions:
     ```bash
-    jupyter notebook
+    python StoDir.py <ticker> [horizons]
     ```
+    - `<ticker>`: Stock ticker symbol (e.g., AAPL).
+    - `[horizons]`: Optional list of horizons to include as features (e.g., 2 5 60 250 1000).
 
-2. Open the notebook and execute the cells to perform data analysis, feature engineering, model training, and backtesting.
+2. The script will save plots and predictions to files in the `plots` directory.
 
 ## Contributing
 
