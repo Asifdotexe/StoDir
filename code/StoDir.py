@@ -6,10 +6,14 @@ import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 from sklearn.model_selection import train_test_split
-import sys
+import os
+from datetime import datetime
+import argparse
+import mplfinance as mpf
 
 def fetch_data(ticker: str, 
-               save_plot: bool=False,
+               save_plot: bool=True,
+               save_candlestick: bool=True,
                history_start: str = "1990-01-01"
 ) -> pd.DataFrame:
     """
@@ -18,6 +22,7 @@ def fetch_data(ticker: str,
     Parameters:
     - ticker (str): The ticker symbol of the stock.
     - save_plot (bool, optional): If True, saves a plot of the closing prices to a file. Defaults to False.
+    - save_candlestick (bool, optional): If True, saves a candlestick chart of the last 30 days to a file. Defaults to False.
     - history_start (str, optional): The start date for fetching the historical data. Defaults to "1990-01-01".
 
     Returns:
@@ -25,20 +30,33 @@ def fetch_data(ticker: str,
 
     Note:
     - The function uses the yfinance library to fetch the data.
-    - The function saves the plot in a directory named 'plots' with the filename as '{ticker}_closing_price.png'.
+    - The function saves the plot in a directory named 'plots' with the filename as '{ticker}_closing_price.png' and '{ticker}_candlestick_chart.png'.
     - The function closes the plot after saving it.
     """
     data = yf.Ticker(ticker).history(start=history_start)
     data.columns = data.columns.str.lower()
-    if save_plot == True:
-        plt.plot(data['Close'])
+
+    plot_dir = 'plots/'
+    # Ensure the directory exists
+    os.makedirs(plot_dir, exist_ok=True)
+
+    if save_plot:
+        # Save closing price plot
+        plt.plot(data['close'])
         plt.title(f'Closing Price of {ticker} Over Time')
         plt.xlabel('Date')
         plt.ylabel('Closing Price')
-        plt.savefig(f'plots/{ticker}_closing_price.png')
+        plt.savefig(f'{plot_dir}{ticker}_closing_price.png')
         plt.close()
-    return data
 
+    if save_candlestick:
+        # Save candlestick chart for the last 30 days
+        mpf.plot(data[-30:], type='candle', style='charles', 
+                 title=f"{ticker} Candlestick Chart of Last 30 days", 
+                 ylabel='Price', 
+                 savefig=f'{plot_dir}{ticker}_candlestick_chart.png')
+
+    return data
 def add_features(data: pd.DataFrame, *horizons) -> pd.DataFrame:
     """
     Adds features to the input DataFrame for stock price prediction.
@@ -68,17 +86,22 @@ def add_features(data: pd.DataFrame, *horizons) -> pd.DataFrame:
     for horizon in horizons:
         rolling_average = data['close'].rolling(horizon).mean()
         data[f'{horizon}_day'] = rolling_average / data['close']
-    data = data.drop()
+    data = data.dropna(axis=0, how='any')
     return data
 
 def train_model(data: pd.DataFrame, ticker: str) -> RandomForestClassifier:
+    
+    plot_dir = 'plots/'
+    # Ensure the directory exists
+    os.makedirs(plot_dir, exist_ok=True)
+    
     model = RandomForestClassifier(n_estimators=200,
                                    min_samples_split=50,
                                    random_state=42)
     train = data.iloc[:-100]
     test = data.iloc[-100:]
     
-    predictors = ['Close', 'Volume', 'Open', 'High', 'Low'] + [f'{h}day' for h in [2, 5, 60, 250, 1000]]
+    predictors = [f'{h}_day' for h in [2, 5, 60, 250, 1000]]
     model.fit(train[predictors], train['target'])
     
     preds = model.predict(test[predictors])
@@ -92,7 +115,7 @@ def train_model(data: pd.DataFrame, ticker: str) -> RandomForestClassifier:
     plt.figure(figsize=(14, 7))
     combined.plot()
     plt.title('Actual vs Predicted')
-    plt.savefig(f'{ticker}_actual_vs_predicted.png')
+    plt.savefig(f'{plot_dir}{ticker}_actual_vs_predicted.png')
     plt.close()
     
     return model
@@ -110,9 +133,26 @@ def predict_next_day(model, data):
 
     The function selects the most recent data from the input DataFrame, extracts relevant features, and uses the trained model to predict the probabilities of an upward or downward movement.
     It then compares the probabilities to a threshold (0.6) and returns the corresponding prediction.
-    """
+    """    
     recent_data = data.iloc[-1:]
-    features = ['Close', 'Volume', 'Open', 'High', 'Low'] + [f'{h}day' for h in [2, 5, 60, 250, 1000]]
+    features = [f'{h}_day' for h in [2, 5, 60, 250, 1000]]
     probabilities = model.predict_proba(recent_data[features])
     prediction = "up" if probabilities[0][1] > 0.6 else "down"
     return prediction
+
+def main():
+    parser = argparse.ArgumentParser(description='Predict the next day stock price movement.')
+    parser.add_argument('ticker', type=str, help='Stock ticker symbol')
+    parser.add_argument('horizons', type=int, nargs='*', help='List of horizons to include as features (optional)')
+    args = parser.parse_args()
+    
+    data = fetch_data(args.ticker)
+    data = add_features(data)
+    model = train_model(data, args.ticker)
+    prediction = predict_next_day(model, data)
+    
+    print(f'The stock price for {args.ticker} is predicted to go {prediction} tomorrow.')
+    print(f'Plots saved as {args.ticker}_closing_price.png and {args.ticker}_actual_vs_predicted.png')
+    
+if __name__ == "__main__":
+    main()
