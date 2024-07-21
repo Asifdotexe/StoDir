@@ -96,4 +96,23 @@ def train_model(data: pd.DataFrame, ticker: str) -> RandomForestClassifier:
     plt.close()
     
     return model
-    
+
+def predict_next_day(model, data):
+    """
+    Predicts the direction of the next day's stock price based on the trained model and recent data.
+
+    Parameters:
+    - model (RandomForestClassifier): The trained Random Forest model for stock price prediction.
+    - data (pd.DataFrame): A DataFrame containing recent historical stock data.
+
+    Returns:
+    - str: The predicted direction of the next day's stock price. Returns "up" if the probability of an upward movement is greater than 0.6, otherwise returns "down".
+
+    The function selects the most recent data from the input DataFrame, extracts relevant features, and uses the trained model to predict the probabilities of an upward or downward movement.
+    It then compares the probabilities to a threshold (0.6) and returns the corresponding prediction.
+    """
+    recent_data = data.iloc[-1:]
+    features = ['Close', 'Volume', 'Open', 'High', 'Low'] + [f'{h}day' for h in [2, 5, 60, 250, 1000]]
+    probabilities = model.predict_proba(recent_data[features])
+    prediction = "up" if probabilities[0][1] > 0.6 else "down"
+    return prediction
