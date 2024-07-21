@@ -75,6 +75,25 @@ def train_model(data: pd.DataFrame, ticker: str) -> RandomForestClassifier:
     model = RandomForestClassifier(n_estimators=200,
                                    min_samples_split=50,
                                    random_state=42)
-    train = 
+    train = data.iloc[:-100]
+    test = data.iloc[-100:]
     
+    predictors = ['Close', 'Volume', 'Open', 'High', 'Low'] + [f'{h}day' for h in [2, 5, 60, 250, 1000]]
+    model.fit(train[predictors], train['target'])
+    
+    preds = model.predict(test[predictors])
+    preds = pd.Series(preds, index=test.index)
+    precision = precision_score(test['target'], preds)
+    print("Precision Score:", precision)
+    
+    combined = pd.concat([test['target'], preds], axis=1)
+    combined.columns = ['Actual', 'Predicted']
+    
+    plt.figure(figsize=(14, 7))
+    combined.plot()
+    plt.title('Actual vs Predicted')
+    plt.savefig(f'{ticker}_actual_vs_predicted.png')
+    plt.close()
+    
+    return model
     
