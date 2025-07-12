@@ -159,6 +159,8 @@ def main():
     ticker = st.text_input("Enter Stock Ticker:", "AAPL")
 
     if ticker and st.button("Forecast"):
+        # FIXME: The API is probably not working,
+        # so we will not be able to fetch data.
         data = fetch_data(ticker)
         st.write("Data shape before feature engineering:", data.shape)
         data = add_features(data)
