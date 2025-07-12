@@ -18,11 +18,11 @@ def fetch_data(ticker: str,
 
     Parameters:
     - ticker (str): The ticker symbol of the stock.
-    - save_plot (bool, optional): If True, 
+    - save_plot (bool, optional): If True,
     saves a plot of the closing prices to a file. Defaults to False.
-    - save_candlestick (bool, optional): If True, 
+    - save_candlestick (bool, optional): If True,
     saves a candlestick chart of the last 30 days to a file. Defaults to False.
-    - history_start (str, optional): The start date for fetching 
+    - history_start (str, optional): The start date for fetching
     the historical data. Defaults to "1990-01-01".
 
     Returns:
@@ -53,7 +53,7 @@ def fetch_data(ticker: str,
 
     if save_candlestick:
         # Save candlestick chart for the last 30 days
-        mpf.plot(data[-30:], type='candle', style='charles', 
+        mpf.plot(data[-30:], type='candle', style='charles',
                  title=f"{ticker} Candlestick Chart of Last 30 days",
                  ylabel='Price',
                  savefig=f'{plot_dir}{ticker}_candlestick_chart.png')
@@ -64,13 +64,13 @@ def fetch_data(ticker: str,
 def add_features(data: pd.DataFrame, *horizons) -> pd.DataFrame:
     """
     Adds features to the input DataFrame for stock price prediction.
-    
+
     Parameters:
     - data (pd.DataFrame): A DataFrame containing historical stock data.
-    
+
     Returns:
     - pd.DataFrame: A DataFrame with added features for stock price prediction.
-    
+
     The function adds the following features to the input DataFrame:
     1. 'tomorrow': The closing price of the next day.
     2. 'target': A binary indicator variable that takes the value 1
@@ -133,7 +133,7 @@ def train_model(data: pd.DataFrame, ticker: str) -> RandomForestClassifier:
 
 def predict_next_day(model, data):
     """
-    Predicts the direction of the next day's stock price 
+    Predicts the direction of the next day's stock price
     based on the trained model and recent data.
 
     Parameters:
