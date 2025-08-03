@@ -11,8 +11,6 @@ def fetch_data(ticker: str, history_start: str = "1990-01-01") -> pd.DataFrame:
 
     :param ticker: Stock ticker symbol (e.g., 'AAPL').
     :param history_start: Date to start fetching historical data (YYYY-MM-DD).
-    :return: DataFrame with historical stock data.
-    :raises ValueError: If the ticker is invalid or no data is found.
     """
     data = yf.Ticker(ticker).history(start=history_start)
     if data.empty:

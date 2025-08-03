@@ -1,6 +1,8 @@
 # FILE: app.py
 
 import io
+
+import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import mplfinance as mpf
@@ -8,8 +10,11 @@ import mplfinance as mpf
 from stodir.forecast import fetch_data, add_features, train_model, predict_next_day
 
 
-def plot_candlestick(data, ticker):
-    """Displays a candlestick chart for the last 30 days."""
+def plot_candlestick(data: pd.DataFrame, ticker: str):
+    """Displays a candlestick chart for the last 30 days.
+    :param data: Historical stock data DataFrame.
+    :param ticker: Stock ticker symbol.
+    """
     buffer = io.BytesIO()
     mpf.plot(
         data.tail(30),
@@ -23,8 +28,11 @@ def plot_candlestick(data, ticker):
     st.image(buffer, caption=f"{ticker} Candlestick Chart", use_column_width=True)
 
 
-def plot_closing_price(data, ticker):
-    """Displays a line chart of the closing price."""
+def plot_closing_price(data: pd.DataFrame, ticker: str):
+    """Displays a line chart of the closing price.
+    :param data: Historical stock data DataFrame.
+    :param ticker: Stock ticker symbol.
+    """
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(data.index, data["close"], label="Closing Price")
     ax.set_title(f"{ticker} Closing Price History")

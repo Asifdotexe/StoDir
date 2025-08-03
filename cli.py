@@ -2,13 +2,16 @@
 
 import argparse
 import os
+
+import pandas as pd
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 
-from stodir.forecast import fetch_data, add_features, train_model, predict_next_day
+from stodir.forecast import (add_features, fetch_data, predict_next_day,
+                             train_model)
 
 
-def save_plots(raw_data, ticker):
+def save_plots(raw_data: pd.DataFrame, ticker):
     """Saves closing price and candlestick charts to the plots/ directory."""
     plot_dir = 'plots/'
     os.makedirs(plot_dir, exist_ok=True)  # Ensure the directory exists
