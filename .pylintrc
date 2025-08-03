@@ -1,0 +1,37 @@
+[MAIN]
+load-plugins=pylint.extensions.docstyle
+
+ignore-paths=
+    .git,
+    __pycache__,
+    .streamlit,
+    .venv,
+    venv,
+    .idea,
+    build,
+    dist,
+    .pytest_cache,
+    .mypy_cache
+
+ignore-patterns=
+    .egg-info,
+
+[MESSAGES CONTROL]
+
+disable=
+    missing-module-docstring,  # C0114: Missing docstring in public module
+    missing-class-docstring,   # C0115: Missing docstring in public class
+    too-few-public-methods,    # R0903: Class has too few public methods (e.g., for data classes)
+    similarities,              # R0801: Similar lines in files (can be useful, but often noisy)
+
+[FORMAT]
+max-line-length=120
+
+[DESIGN]
+max-args=7
+max-locals=20
+
+[TYPECHECK]
+ignored-classes=
+    SQLAlchemy,
+    declarative_base
