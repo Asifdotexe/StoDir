@@ -46,24 +46,18 @@ def main():
     ticker = args.ticker.upper()
     print(f"--- Running forecast for {ticker} ---")
 
-    try:
-        raw_data = fetch_data(ticker)
-        print(f"Successfully fetched {len(raw_data)} data points.")
-        featured_data = add_features(raw_data.copy())
-        model, precision, predictors = train_model(featured_data)
-        prediction = predict_next_day(model, featured_data, predictors)
+    raw_data = fetch_data(ticker)
+    print(f"Successfully fetched {len(raw_data)} data points.")
+    featured_data = add_features(raw_data.copy())
+    model, precision, predictors = train_model(featured_data)
+    prediction = predict_next_day(model, featured_data, predictors)
 
-        print("\n--- Forecast Results ---")
-        print(f"Model Precision: {precision:.2%}")
-        print(f"Prediction for next trading day: The stock is likely to go {prediction.upper()}.")
+    print("\n--- Forecast Results ---")
+    print(f"Model Precision: {precision:.2%}")
+    print(f"Prediction for next trading day: The stock is likely to go {prediction.upper()}.")
 
-        print("\n--- Saving Plots ---")
-        save_plots(raw_data, ticker)
-
-    except ValueError as e:
-        print(f"Error: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+    print("\n--- Saving Plots ---")
+    save_plots(raw_data, ticker)
 
 
 if __name__ == "__main__":

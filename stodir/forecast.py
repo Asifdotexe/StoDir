@@ -5,9 +5,9 @@ import yfinance as yf
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
+
 def fetch_data(ticker: str, history_start: str = "1990-01-01") -> pd.DataFrame:
-    """
-    Fetches historical stock data for a given ticker using Yahoo Finance.
+    """Fetches historical stock data for a given ticker using Yahoo Finance.
 
     :param ticker: Stock ticker symbol (e.g., 'AAPL').
     :param history_start: Date to start fetching historical data (YYYY-MM-DD).
@@ -22,8 +22,7 @@ def fetch_data(ticker: str, history_start: str = "1990-01-01") -> pd.DataFrame:
 
 
 def add_features(data: pd.DataFrame, horizons: list[int] = None) -> pd.DataFrame:
-    """
-    Adds target variable and rolling average features to the data.
+    """Adds target variable and rolling average features to the data.
 
     :param data: Historical stock DataFrame.
     :param horizons: List of horizons to calculate rolling averages.
@@ -44,8 +43,7 @@ def add_features(data: pd.DataFrame, horizons: list[int] = None) -> pd.DataFrame
 
 
 def train_model(data: pd.DataFrame, horizons: list[int] = None) -> tuple[RandomForestClassifier, float, list[str]]:
-    """
-    Trains a RandomForestClassifier and evaluates its precision.
+    """Trains a RandomForestClassifier and evaluates its precision.
 
     :param data: Feature-engineered stock data.
     :param horizons: Horizons used for rolling average features.
@@ -74,8 +72,7 @@ def train_model(data: pd.DataFrame, horizons: list[int] = None) -> tuple[RandomF
 
 
 def predict_next_day(model: RandomForestClassifier, data: pd.DataFrame, predictors: list[str]) -> str:
-    """
-    Predicts the stock's direction for the next trading day.
+    """Predicts the stock's direction for the next trading day.
 
     :param model: Trained RandomForestClassifier.
     :param data: The full feature-engineered stock data.

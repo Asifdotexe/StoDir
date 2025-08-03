@@ -7,6 +7,7 @@ import mplfinance as mpf
 
 from stodir.forecast import fetch_data, add_features, train_model, predict_next_day
 
+
 def plot_candlestick(data, ticker):
     """Displays a candlestick chart for the last 30 days."""
     buffer = io.BytesIO()
@@ -36,8 +37,9 @@ def plot_closing_price(data, ticker):
 def show_disclaimer():
     """Displays a disclaimer at the bottom of the app."""
     disclaimer = """
-    <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; border: 1px solid #f5c6cb;">
-        <strong>Disclaimer:</strong> This tool is for educational purposes only and is not financial advice. 
+    <div
+    style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; border: 1px solid #f5c6cb;">
+        <strong>Disclaimer:</strong> This tool is for educational purposes only and is not financial advice.
         Market predictions are based solely on historical trends and do not account for all market factors.
     </div>
     """
@@ -76,9 +78,6 @@ def main():
             except ValueError as e:
                 # This catches the error from fetch_data if the ticker is invalid
                 st.error(f"Error: {e}")
-            except Exception as e:
-                # This catches other potential errors during the process
-                st.error(f"An unexpected error occurred: {e}")
 
     show_disclaimer()
 
