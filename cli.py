@@ -9,10 +9,12 @@ import mplfinance as mpf
 
 from stodir.forecast import fetch_data, add_features, predict_next_day
 
+
+MODEL_PATH = "artifacts/stodir_model.joblib"
+
 with open("config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
-MODEL_PATH = config["model_io"]["model_filename"]
 HORIZONS = config["features"]["horizons"]
 PREDICTORS = [f"{h}_day" for h in HORIZONS]
 
