@@ -1,6 +1,7 @@
 import io
 import os
 
+import yaml
 import joblib
 import pandas as pd
 import streamlit as st
@@ -9,9 +10,11 @@ import mplfinance as mpf
 
 from stodir.forecast import fetch_data, add_features, predict_next_day
 
-MODEL_PATH = "stodir_model.joblib"
-#FIXME: This should come from config
-HORIZONS = [2, 5, 60, 250, 1000]
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+MODEL_PATH = config["model_io"]["model_filename"]
+HORIZONS = config["features"]["horizons"]
 PREDICTORS = [f"{h}_day" for h in HORIZONS]
 
 
