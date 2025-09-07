@@ -1,6 +1,7 @@
 import os
 import argparse
 
+import yaml
 import joblib
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -8,11 +9,14 @@ import mplfinance as mpf
 
 from stodir.forecast import fetch_data, add_features, predict_next_day
 
-MODEL_PATH = "stodir_model.joblib"
-HORIZONS = [2, 5, 60, 250, 1000] # This should come from config
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+MODEL_PATH = config["model_io"]["model_filename"]
+HORIZONS = config["features"]["horizons"]
 PREDICTORS = [f"{h}_day" for h in HORIZONS]
 
-# (Keep your save_plots function as is)
+
 def save_plots(raw_data: pd.DataFrame, ticker):
     """Saves closing price and candlestick charts to the plots/ directory."""
     plot_dir = 'plots/'
@@ -36,9 +40,9 @@ def main():
         print(f"Error: Model file not found at '{MODEL_PATH}'.")
         print("Please run the training pipeline first: `python train.py`")
         return
-        
+
     model = joblib.load(MODEL_PATH)
-    
+
     parser = argparse.ArgumentParser(description='Forecast the next-day stock price direction using a pre-trained model.')
     parser.add_argument('ticker', type=str, help='Stock ticker symbol (e.g., GOOGL, MSFT).')
     args = parser.parse_args()
@@ -50,7 +54,7 @@ def main():
         raw_data = fetch_data(ticker)
         print(f"Successfully fetched {len(raw_data)} data points.")
         featured_data = add_features(raw_data.copy(), horizons=HORIZONS)
-        
+
         prediction = predict_next_day(model, featured_data, PREDICTORS)
 
         print("\n--- Forecast Results ---")
@@ -58,7 +62,7 @@ def main():
 
         print("\n--- Saving Plots ---")
         save_plots(raw_data, ticker)
-        
+
     except ValueError as e:
         print(f"Error: {e}")
     except Exception as e:
