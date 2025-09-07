@@ -6,16 +6,8 @@ from sklearn.metrics import precision_score
 from stodir.validation import backtest
 from stodir.forecast import fetch_data, add_features
 
-
-# Load configuration from YAML file
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
-
-# Use values from config
-TRAINING_TICKERS = config["data"]["training_tickers"]
-HORIZONS = config["features"]["horizons"]
-PREDICTORS = [f"{h}_day" for h in HORIZONS]
-MODEL_FILENAME = config["model_io"]["model_filename"]
+MODEL_SAVE_PATH = "artifacts/stodir_model.joblib"
+CONFIG_PATH = "config.yaml"
 
 
 def train_pipeline():
@@ -23,6 +15,16 @@ def train_pipeline():
     Full pipeline to train and save a generalized stock forecasting model.
     """
     print("--- Starting Model Training Pipeline ---")
+
+        # Load configuration from YAML file
+    with open(CONFIG_PATH, "r") as f:
+        config = yaml.safe_load(f)
+
+    # Use values from config
+    TRAINING_TICKERS = config["data"]["training_tickers"]
+    HORIZONS = config["features"]["horizons"]
+    PREDICTORS = [f"{h}_day" for h in HORIZONS]
+    MODEL_FILENAME = config["model_io"]["model_filename"]
 
     # Fetch and combine data for all training tickers
     all_data = []
