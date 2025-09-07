@@ -89,8 +89,10 @@ def main():
     st.title("StoDir - Stock Direction Forecasting")
 
     config, model = load_config_and_model()
-    # Using an assertion to ensure the model and config are loaded before proceeding.
-    assert model is not None and config is not None, "Model or config failed to load. Cannot proceed."
+
+    # Ensuring that both model and config files exist before proceesing
+    if model is None or config is None:
+        st.stop()
 
     HORIZONS = config["features"]["horizons"]
     PREDICTORS = [f"{h}_day" for h in HORIZONS]
