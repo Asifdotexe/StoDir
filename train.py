@@ -24,7 +24,6 @@ def train_pipeline():
     TRAINING_TICKERS = config["data"]["training_tickers"]
     HORIZONS = config["features"]["horizons"]
     PREDICTORS = [f"{h}_day" for h in HORIZONS]
-    MODEL_FILENAME = config["model_io"]["model_filename"]
 
     # Fetch and combine data for all training tickers
     all_data = []
@@ -61,8 +60,8 @@ def train_pipeline():
     final_model, _, _ = train_model(featured_data, horizons=HORIZONS)
 
     # Serialize and save the final model
-    joblib.dump(final_model, MODEL_FILENAME)
-    print(f"Final model saved to '{MODEL_FILENAME}'")
+    joblib.dump(final_model, MODEL_SAVE_PATH)
+    print(f"Final model saved to '{MODEL_SAVE_PATH}'")
 
     print("\n--- Model Training Pipeline Complete ---")
 
