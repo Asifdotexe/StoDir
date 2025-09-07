@@ -62,7 +62,7 @@ def plot_candlestick(data: pd.DataFrame, ticker: str):
         title=f"{ticker} - Last 30 Days", ylabel="Price", savefig=buffer,
     )
     buffer.seek(0)
-    st.image(buffer, caption=f"{ticker} Candlestick Chart", use_column_width=True)
+    st.image(buffer, caption=f"{ticker} Candlestick Chart", use_container_width=True)
 
 
 def plot_closing_price(data: pd.DataFrame, ticker: str):
