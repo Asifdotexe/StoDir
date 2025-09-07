@@ -7,24 +7,52 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import mplfinance as mpf
+from huggingface_hub import hf_hub_download
+from huggingface_hub.errors import RepositoryNotFoundError, EntryNotFoundError
+from urllib.error import HTTPError
 
 from stodir.forecast import fetch_data, add_features, predict_next_day
 
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
-
-MODEL_PATH = config["model_io"]["model_filename"]
-HORIZONS = config["features"]["horizons"]
-PREDICTORS = [f"{h}_day" for h in HORIZONS]
+REPO_ID = "AsifSayyed/stodir-forecast-model"
+CONFIG_FILENAME = "config.yaml"
+MODEL_FILENAME = "stodir_model.joblib"
 
 
 @st.cache_resource
-def load_model():
-    """Loads the pre-trained model from disk, cached for performance."""
-    if not os.path.exists(MODEL_PATH):
-        return None
-    model = joblib.load(MODEL_PATH)
-    return model
+def load_config_and_model():
+    """
+    Loads the config and the pre-trained model from the Hugging Face Hub.
+    The results are cached for performance.
+    """
+    try:
+        # Download the config file
+        config_path = hf_hub_download(repo_id=REPO_ID, filename=CONFIG_FILENAME)
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+
+        # Download the model file
+        model_path = hf_hub_download(repo_id=REPO_ID, filename=MODEL_FILENAME)
+        model = joblib.load(model_path)
+        return config, model
+
+    except (RepositoryNotFoundError, EntryNotFoundError) as e:
+        st.error(
+            f"Error: Could not find the model or config file in the Hugging Face repository '{REPO_ID}'. "
+            "Please ensure the repository and files exist and are public."
+        )
+        return None, None
+
+    except HTTPError as e:
+        st.error(
+            "Error: A network issue occurred while trying to download the model. "
+            "Please check your internet connection and try again."
+        )
+        return None, None
+
+    except Exception as e:
+        # A fallback for other unexpected errors (e.g., corrupt file, unpickling error)
+        st.error(f"An unexpected error occurred while loading the model: {e}")
+        return None, None
 
 
 def plot_candlestick(data: pd.DataFrame, ticker: str):
@@ -61,11 +89,12 @@ def main():
     """Streamlit entry point for StoDir."""
     st.title("StoDir - Stock Direction Forecasting")
 
-    model = load_model()
+    config, model = load_config_and_model()
+    # Using an assertion to ensure the model and config are loaded before proceeding.
+    assert model is not None and config is not None, "Model or config failed to load. Cannot proceed."
 
-    if model is None:
-        st.error(f"Model file not found at '{MODEL_PATH}'. Please run the training pipeline first using `python train.py`.")
-        return
+    HORIZONS = config["features"]["horizons"]
+    PREDICTORS = [f"{h}_day" for h in HORIZONS]
 
     ticker = st.text_input("Enter Stock Ticker:", "AAPL").upper()
 
