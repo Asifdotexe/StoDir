@@ -1,4 +1,4 @@
-# Configuration for the StoDir Forecasting Project
+# Model configurations for StoDir 
 
 model_params:
   n_estimators: 200
@@ -9,20 +9,5 @@ features:
   horizons: [2, 5, 60, 250, 1000]
 
 data:
-  # A diverse list of tickers for training a generalized model
-  training_tickers:
-    - "AAPL"  # Tech
-    - "MSFT"  # Tech
-    - "AMZN"  # Consumer Discretionary
-    - "GOOGL" # Communication Services
-    - "META"  # Communication Services
-    - "TSLA"  # Consumer Discretionary
-    - "NVDA"  # Tech
-    - "JPM"   # Financials
-    - "JNJ"   # Health Care
-    - "V"     # Financials
-    - "PG"    # Consumer Staples
-    - "XOM"   # Energy
+  training_tickers: ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA"]
 
-model_io:
-  model_filename: "stodir_model.joblib"
