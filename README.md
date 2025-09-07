@@ -54,7 +54,7 @@ The system is split into two parts: an offline Training Pipeline that builds the
 
 ```
 
-For a more detailed explanation, see the [Architecture Document]().
+For a more detailed explanation, see the [Architecture Document](docs\SYSTEM_ARCHITECTURE.md).
 
 ### Tech Stack
 - ML & Data: Scikit-learn, Pandas, yfinance
