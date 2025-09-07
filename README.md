@@ -20,6 +20,7 @@ An end-to-end project demonstrating a system for training, evaluating, and deplo
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Usage](#usage)
+- [License](#license)
 
 ---
 
@@ -123,7 +124,10 @@ pip install -r requirements.txt
     python train.py
     ```
     Then, get a forecast directly in your terminal:
-    
+
     ```bash
     python cli.py GOOGL
     ```
+
+## License
+This project is licensed under the MIT License. See the [LICENSE]() file for details.
