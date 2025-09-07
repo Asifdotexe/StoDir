@@ -69,6 +69,9 @@ def main():
         raw_data = fetch_data(ticker)
         print(f"Successfully fetched {len(raw_data)} data points.")
         featured_data = add_features(raw_data.copy(), horizons=HORIZONS)
+        if featured_data.empty:
+            print("Not enough historical data for the configured horizons. Try a different ticker or reduce horizons in config.yaml.")
+            return
 
         prediction = predict_next_day(model, featured_data, PREDICTORS)
 
