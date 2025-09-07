@@ -40,8 +40,23 @@ def main():
         print(f"Error: Model file not found at '{MODEL_PATH}'.")
         print("Please run the training pipeline first: `python train.py`")
         return
-
-    model = joblib.load(MODEL_PATH)
+    try:
+        model = joblib.load(MODEL_PATH)
+    except Exception as e:
+        print(f"Error loading model from '{MODEL_PATH}': {e}")
+        return
+    # Load config after ensuring model is available
+    try:
+        with open("config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+        HORIZONS = config["features"]["horizons"]
+        PREDICTORS = [f"{h}_day" for h in HORIZONS]
+    except FileNotFoundError:
+        print("Error: 'config.yaml' not found. Please create it or copy from the template.")
+        return
+    except KeyError as e:
+        print(f"Error: Missing key in config.yaml: {e}")
+        return
 
     parser = argparse.ArgumentParser(description='Forecast the next-day stock price direction using a pre-trained model.')
     parser.add_argument('ticker', type=str, help='Stock ticker symbol (e.g., GOOGL, MSFT).')
