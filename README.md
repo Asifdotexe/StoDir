@@ -20,6 +20,7 @@ An end-to-end project demonstrating a system for training, evaluating, and deplo
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Usage](#usage)
+- [Documentation](#documentations)
 - [License](#license)
 
 ---
@@ -128,6 +129,11 @@ pip install -r requirements.txt
     ```bash
     python cli.py GOOGL
     ```
+
+## Documentations
+- [Project Methodology Document]()
+- [System Architecture Document](docs\SYSTEM_ARCHITECTURE.md)
+- [Backtesting Document](docs\BACKTESTING.md)
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE]() file for details.
