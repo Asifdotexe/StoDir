@@ -47,13 +47,23 @@ def train_pipeline():
 
     # Perform backtesting to validate the model
     print("Performing backtest for validation...")
-    backtest_results = backtest(featured_data, PREDICTORS)
-
-    # Calculate and print overall precision from the backtest
-    precision = precision_score(backtest_results["actual"], backtest_results["predicted"])
-    print(f"\n--- Backtest Validation Complete ---")
-    print(f"Backtest Precision Score: {precision:.2%}")
-    print(f"This score reflects a more realistic measure of the model's historical performance.")
+    # Perform backtesting per ticker to validate the model
+    print("Performing backtest for validation...")
+    per_ticker_precisions = []
+    for tkr, df in featured_data.groupby("ticker"):
+        try:
+            bt = backtest(df, PREDICTORS)
+            prec = precision_score(bt["actual"], bt["predicted"])
+            per_ticker_precisions.append(prec)
+            print(f"{tkr}: {prec:.2%}")
+        except Exception as e:
+            print(f"Backtest skipped for {tkr}: {e}")
+    if not per_ticker_precisions:
+        print("Backtest failed for all tickers. Aborting training.")
+        return
+    precision = sum(per_ticker_precisions) / len(per_ticker_precisions)
+    print("\n--- Backtest Validation Complete ---")
+    print(f"Backtest Precision (avg across tickers): {precision:.2%}")
 
     # Train the final model on ALL available data
     print("\nTraining final model on all available data...")
