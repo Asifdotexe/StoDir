@@ -55,7 +55,7 @@ The system is split into two parts: an offline Training Pipeline that builds the
 
 ```
 
-For a more detailed explanation, see the [Architecture Document](docs\SYSTEM_ARCHITECTURE.md).
+For a more detailed explanation, see the [Architecture Document](docs/SYSTEM_ARCHITECTURE.md).
 
 ### Tech Stack
 - ML & Data: Scikit-learn, Pandas, yfinance
@@ -130,10 +130,10 @@ pip install -r requirements.txt
     python cli.py GOOGL
     ```
 
-## Documentations
-- [Project Methodology Document]()
-- [System Architecture Document](docs\SYSTEM_ARCHITECTURE.md)
-- [Backtesting Document](docs\BACKTESTING.md)
+## Documentation
+- [Project Methodology Document](docs/PROJECT_METHODOLOGY.md)
+- [System Architecture Document](docs/SYSTEM_ARCHITECTURE.md)
+- [Backtesting Document](docs/BACKTESTING.md)
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE]() file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
