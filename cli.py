@@ -30,12 +30,7 @@ def save_plots(raw_data: pd.DataFrame, ticker):
 
 def main():
     """CLI entry point for StoDir."""
-    with open("config.yaml", "r") as f:
-        config = yaml.safe_load(f)
-
-    HORIZONS = config["features"]["horizons"]
-    PREDICTORS = [f"{h}_day" for h in HORIZONS]
-
+    
     if not os.path.exists(MODEL_PATH):
         print(f"Error: Model file not found at '{MODEL_PATH}'.")
         print("Please run the training pipeline first: `python train.py`")

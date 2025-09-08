@@ -104,7 +104,9 @@ def train_pipeline():
 
     # Serialize and save the final model
     os.makedirs(os.path.dirname(MODEL_SAVE_PATH) or ".", exist_ok=True)
-    joblib.dump(final_model, MODEL_SAVE_PATH)
+    joblib.dump({"model": final_model,
+                 "horizons": HORIZONS,
+                 "predictors": PREDICTORS,}, MODEL_SAVE_PATH)
     logger.info(f"Final model saved to '{MODEL_SAVE_PATH}'")
 
     logger.info("--- Model Training Pipeline Complete ---")

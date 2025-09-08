@@ -43,7 +43,7 @@ def load_config_and_model():
 
     except (HfHubHTTPError, RequestException) as e:
         st.error(
-            "Error: A network or Hub issue occurred while trying to download the model. "   
+            "Error: A network or Hub issue occurred while trying to download the model. "
             "Please check your internet connection and try again."
         )
         return None, None
