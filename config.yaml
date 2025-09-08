@@ -9,7 +9,7 @@ features:
   horizons: [2, 5, 60, 250, 1000]
 
 data:
-  training_tickers: ["AAPL", "MSFT"]
+  training_tickers: ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA"]
 
 backtesting:
   # The minimum number of trading days to use for the first training period.
