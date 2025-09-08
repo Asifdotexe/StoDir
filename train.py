@@ -22,7 +22,7 @@ def train_pipeline():
     """
     logger.info("--- Starting Model Training Pipeline ---")
 
-        # Load configuration from YAML file
+    # Load configuration from YAML file
     with open(CONFIG_PATH, "r") as f:
         config = yaml.safe_load(f)
 
@@ -96,7 +96,7 @@ def train_pipeline():
 
     avg_precision = sum(per_ticker_precisions) / len(per_ticker_precisions)
     print("\n--- Backtest Validation Complete ---")
-    print(f"Backtest Precision (avg across tickers): {precision:.2%}")
+    print(f"Backtest Precision (avg across tickers): {avg_precision:.2%}")
 
     # Train the final model on ALL available data
     logger.info("Training final model on all available data...")
