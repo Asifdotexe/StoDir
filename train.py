@@ -33,27 +33,28 @@ def train_pipeline():
     BACKTEST_START = config["backtesting"]["start"]
     BACKTEST_STEP = config["backtesting"]["step"]
 
-    # Fetch and combine data for all training tickers
-    all_data = []
-    for ticker in tqdm(TRAINING_TICKERS, desc="Fetching training data"):
-        logger.info(f"Fetching data for {ticker}")
+    logger.info("Processing tickers individually to prevent data leakage...")
+    all_featured_data = []
+    for ticker in tqdm(TRAINING_TICKERS, desc="Fetching & Engineering Features"):
         try:
+            # Fetch data for a single ticker
             data = fetch_data(ticker)
-            data['ticker'] = ticker
-            all_data.append(data)
-        except ValueError as e:
-            logger.warning(f"Could not fetch data for {ticker}: {e}")
 
-    if not all_data:
-        logger.error("No data could be fetched. Aborting training.")
+            # Engineer features on that single ticker's data
+            # This ensures shift() operations do not cross ticker boundaries.
+            featured = add_features(data.copy(), horizons=HORIZONS)
+            featured['ticker'] = ticker
+            all_featured_data.append(featured)
+
+        except ValueError as e:
+            logger.warning(f"Could not process data for {ticker}: {e}")
+
+    if not all_featured_data:
+        logger.error("No data could be processed. Aborting training.")
         return
 
-    combined_data = pd.concat(all_data)
-    logger.info(f"Successfully fetched data for {len(all_data)} tickers.")
-
-    # Add features to the combined dataset
-    logger.info(f"Successfully fetched data for {len(all_data)} tickers.")
-    featured_data = add_features(combined_data.copy(), horizons=HORIZONS)
+    featured_data = pd.concat(all_featured_data).sort_index()
+    logger.info(f"Successfully processed and combined data for {len(all_featured_data)} tickers.")
 
     logger.info("Performing backtest for validation...")
     per_ticker_precisions = []
