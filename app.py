@@ -88,13 +88,13 @@ def plot_closing_price(data, ticker):
 
 
 def show_disclaimer():
-    """Displays a disclaimer at the bottom of the app."""
-    st.markdown("""
-    <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; border: 1px solid #f5c6cb;">
-        <strong>Disclaimer:</strong> This tool is for educational purposes only and is not financial advice.
-        Predictions are based on a generalized model and historical trends.
-    </div>
-    """, unsafe_allow_html=True)
+    """Displays a non-distracting disclaimer at the bottom of the app."""
+    st.divider()
+    st.caption(
+        "**Disclaimer:** This tool is for educational purposes only and is not financial advice. "
+        "Market predictions are based solely on historical trends from a generalized model and do not account for all market factors. "
+        "Use this information at your own risk."
+    )
 
 
 def main():
@@ -108,10 +108,11 @@ def main():
 
     HORIZONS = config["features"]["horizons"]
     PREDICTORS = [f"{h}_day" for h in HORIZONS]
+    TRAINING_TICKERS = config["data"]["training_tickers"]
 
-    ticker = st.text_input("Enter a Stock Ticker (e.g., AAPL, MSFT, NVDA):", "AAPL").upper()
+    ticker = st.selectbox("Select a stock for forecasting:", TRAINING_TICKERS)
 
-    if st.button("Get Forecast"):
+    if st.button("Get Forecast", type="secondary", use_container_width=True):
         if not ticker:
             st.warning("Please enter a stock ticker.")
             return
