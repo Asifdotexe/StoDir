@@ -6,7 +6,7 @@ from tqdm import tqdm
 from sklearn.metrics import precision_score
 
 from stodir.validation import backtest
-from stodir.forecast import fetch_data, add_features
+from stodir.forecast import fetch_data, add_features, train_model
 
 MODEL_SAVE_PATH = "artifacts/stodir_model.joblib"
 CONFIG_PATH = "config.yaml"
@@ -98,7 +98,7 @@ def train_pipeline():
 
     # Train the final model on ALL available data
     logger.info("Training final model on all available data...")
-    final_model, _, _ = train_model(featured_data, horizons=HORIZONS)
+    final_model, _, _ = train_model(featured_data.drop(columns=["ticker"]), horizons=HORIZONS)
 
     # Serialize and save the final model
     joblib.dump(final_model, MODEL_SAVE_PATH)
@@ -107,6 +107,4 @@ def train_pipeline():
     logger.info("--- Model Training Pipeline Complete ---")
 
 if __name__ == "__main__":
-    # Import train_model here to avoid circular dependency if it were in __init__
-    from stodir.forecast import train_model
     train_pipeline()
