@@ -7,8 +7,8 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 from huggingface_hub import hf_hub_download
-from huggingface_hub.errors import RepositoryNotFoundError, EntryNotFoundError
-from urllib.error import HTTPError
+from huggingface_hub.errors import RepositoryNotFoundError, EntryNotFoundError, HfHubHTTPError, OfflineModeIsEnabled
+from requests.exceptions import RequestException
 
 from stodir.forecast import fetch_data, add_features, predict_next_day
 
@@ -41,16 +41,15 @@ def load_config_and_model():
         )
         return None, None
 
-    except HTTPError as e:
+    except (HfHubHTTPError, RequestException) as e:
         st.error(
-            "Error: A network issue occurred while trying to download the model. "
+            "Error: A network or Hub issue occurred while trying to download the model. "   
             "Please check your internet connection and try again."
         )
         return None, None
 
-    except Exception as e:
-        # A fallback for other unexpected errors (e.g., corrupt file, unpickling error)
-        st.error(f"An unexpected error occurred while loading the model: {e}")
+    except OfflineModeIsEnabled:
+        st.error("Error: Hugging Face Hub offline mode is enabled. Disable it or provide local artifacts.")
         return None, None
 
 
