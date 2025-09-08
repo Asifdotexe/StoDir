@@ -1,62 +1,100 @@
-# FILE: app.py
-
 import io
 
+import yaml
+import joblib
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import mplfinance as mpf
+from huggingface_hub import hf_hub_download
+from huggingface_hub.errors import RepositoryNotFoundError, EntryNotFoundError, HfHubHTTPError, OfflineModeIsEnabled
+from requests.exceptions import RequestException
 
-from stodir.forecast import fetch_data, add_features, train_model, predict_next_day
+from stodir.forecast import fetch_data, add_features, predict_next_day
+
+REPO_ID = "AsifSayyed/stodir-forecast-model"
+CONFIG_FILENAME = "config.yaml"
+MODEL_FILENAME = "stodir_model.joblib"
+
+
+@st.cache_resource
+def load_config_and_model():
+    """
+    Loads the config and the pre-trained model from the Hugging Face Hub.
+    The results are cached for performance.
+    """
+    try:
+        # Download the config file
+        config_path = hf_hub_download(repo_id=REPO_ID, filename=CONFIG_FILENAME)
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+
+        # Download the model file
+        model_path = hf_hub_download(repo_id=REPO_ID, filename=MODEL_FILENAME)
+        model = joblib.load(model_path)
+        return config, model
+
+    except (RepositoryNotFoundError, EntryNotFoundError) as e:
+        st.error(
+            f"Error: Could not find the model or config file in the Hugging Face repository '{REPO_ID}'. "
+            "Please ensure the repository and files exist and are public."
+        )
+        return None, None
+
+    except (HfHubHTTPError, RequestException) as e:
+        st.error(
+            "Error: A network or Hub issue occurred while trying to download the model. "
+            "Please check your internet connection and try again."
+        )
+        return None, None
+
+    except OfflineModeIsEnabled:
+        st.error("Error: Hugging Face Hub offline mode is enabled. Disable it or provide local artifacts.")
+        return None, None
 
 
 def plot_candlestick(data: pd.DataFrame, ticker: str):
-    """Displays a candlestick chart for the last 30 days.
-    :param data: Historical stock data DataFrame.
-    :param ticker: Stock ticker symbol.
-    """
+    """Displays a candlestick chart for the last 30 days."""
     buffer = io.BytesIO()
     mpf.plot(
-        data.tail(30),
-        type="candle",
-        style="charles",
-        title=f"{ticker} - Last 30 Days",
-        ylabel="Price",
-        savefig=buffer,
+        data.tail(30), type="candle", style="charles",
+        title=f"{ticker} - Last 30 Days", ylabel="Price", savefig=buffer,
     )
     buffer.seek(0)
-    st.image(buffer, caption=f"{ticker} Candlestick Chart", use_column_width=True)
+    st.image(buffer, caption=f"{ticker} Candlestick Chart", use_container_width=True)
 
 
 def plot_closing_price(data: pd.DataFrame, ticker: str):
-    """Displays a line chart of the closing price.
-    :param data: Historical stock data DataFrame.
-    :param ticker: Stock ticker symbol.
-    """
+    """Displays a line chart of the closing price."""
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(data.index, data["close"], label="Closing Price")
     ax.set_title(f"{ticker} Closing Price History")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Price")
-    ax.legend()
+    ax.set_xlabel("Date"); ax.set_ylabel("Price"); ax.legend()
     st.pyplot(fig)
 
 
 def show_disclaimer():
     """Displays a disclaimer at the bottom of the app."""
-    disclaimer = """
-    <div
-    style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; border: 1px solid #f5c6cb;">
-        <strong>Disclaimer:</strong> This tool is for educational purposes only and is not financial advice.
-        Market predictions are based solely on historical trends and do not account for all market factors.
+    st.markdown("""
+    <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; border: 1px solid #f5c6cb;">
+        <strong>Disclaimer:</strong> This tool is for educational purposes only and is not financial advice. 
+        Predictions are based on a generalized model and historical trends.
     </div>
-    """
-    st.markdown(disclaimer, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 
 def main():
     """Streamlit entry point for StoDir."""
     st.title("StoDir - Stock Direction Forecasting")
+
+    config, model = load_config_and_model()
+
+    # Ensuring that both model and config files exist before proceesing
+    if model is None or config is None:
+        st.stop()
+
+    HORIZONS = config["features"]["horizons"]
+    PREDICTORS = [f"{h}_day" for h in HORIZONS]
 
     ticker = st.text_input("Enter Stock Ticker:", "AAPL").upper()
 
@@ -65,27 +103,27 @@ def main():
             st.warning("Please enter a stock ticker.")
             return
 
-        with st.spinner(f"Fetching and analyzing data for {ticker}..."):
+        with st.spinner(f"Fetching data and making prediction for {ticker}..."):
             try:
                 raw_data = fetch_data(ticker)
-                featured_data = add_features(raw_data.copy())
-                model, precision, predictors = train_model(featured_data)
-                prediction = predict_next_day(model, featured_data, predictors)
+                featured_data = add_features(raw_data.copy(), horizons=HORIZONS)
+
+                # Perform prediction using the loaded model
+                prediction = predict_next_day(model, featured_data, PREDICTORS)
 
                 if prediction == "up":
                     st.success(f"Prediction for {ticker}: The stock price is likely to go UP tomorrow. 📈")
                 else:
                     st.error(f"Prediction for {ticker}: The stock price is likely to go DOWN tomorrow. 📉")
 
-                st.info(f"Model Precision: {precision:.2%}")
-
                 st.subheader("Data Visualization")
                 plot_closing_price(raw_data, ticker)
                 plot_candlestick(raw_data, ticker)
 
             except ValueError as e:
-                # This catches the error from fetch_data if the ticker is invalid
                 st.error(f"Error: {e}")
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {e}")
 
     show_disclaimer()
 

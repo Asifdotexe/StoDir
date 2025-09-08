@@ -1,0 +1,20 @@
+# Model configurations for StoDir
+
+model_params:
+  n_estimators: 200
+  min_samples_split: 50
+  random_state: 42
+
+features:
+  horizons: [2, 5, 60, 250, 1000]
+
+data:
+  training_tickers: ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA"]
+
+backtesting:
+  # The minimum number of trading days to use for the first training period.
+  # 250 days is roughly one year. 1000 is ~4 years.
+  start: 1000
+
+  # The number of trading days to predict forward in each backtest step.
+  step: 250
