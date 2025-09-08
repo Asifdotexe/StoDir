@@ -1,3 +1,4 @@
+import os
 import yaml
 import joblib
 import logging
@@ -101,6 +102,7 @@ def train_pipeline():
     final_model, _, _ = train_model(featured_data.drop(columns=["ticker"]), horizons=HORIZONS)
 
     # Serialize and save the final model
+    os.makedirs(os.path.dirname(MODEL_SAVE_PATH) or ".", exist_ok=True)
     joblib.dump(final_model, MODEL_SAVE_PATH)
     logger.info(f"Final model saved to '{MODEL_SAVE_PATH}'")
 
