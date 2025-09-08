@@ -1,6 +1,8 @@
 import yaml
 import joblib
+import logging
 import pandas as pd
+from tqdm import tqdm
 from sklearn.metrics import precision_score
 
 from stodir.validation import backtest
@@ -9,12 +11,15 @@ from stodir.forecast import fetch_data, add_features
 MODEL_SAVE_PATH = "artifacts/stodir_model.joblib"
 CONFIG_PATH = "config.yaml"
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+logger = logging.getLogger(__name__)
+
 
 def train_pipeline():
     """
     Full pipeline to train and save a generalized stock forecasting model.
     """
-    print("--- Starting Model Training Pipeline ---")
+    logger.info("--- Starting Model Training Pipeline ---")
 
         # Load configuration from YAML file
     with open(CONFIG_PATH, "r") as f:
@@ -24,56 +29,82 @@ def train_pipeline():
     TRAINING_TICKERS = config["data"]["training_tickers"]
     HORIZONS = config["features"]["horizons"]
     PREDICTORS = [f"{h}_day" for h in HORIZONS]
+    BACKTEST_START = config["backtesting"]["start"]
+    BACKTEST_STEP = config["backtesting"]["step"]
 
     # Fetch and combine data for all training tickers
     all_data = []
-    for ticker in TRAINING_TICKERS:
-        print(f"Fetching data for {ticker}...")
+    for ticker in tqdm(TRAINING_TICKERS, desc="Fetching training data"):
+        logger.info(f"Fetching data for {ticker}")
         try:
             data = fetch_data(ticker)
+            data['ticker'] = ticker
             all_data.append(data)
         except ValueError as e:
-            print(e)
+            logger.warning(f"Could not fetch data for {ticker}: {e}")
 
     if not all_data:
-        print("No data fetched. Aborting training.")
+        logger.error("No data could be fetched. Aborting training.")
         return
 
     combined_data = pd.concat(all_data)
+    logger.info(f"Successfully fetched data for {len(all_data)} tickers.")
 
     # Add features to the combined dataset
-    print("Engineering features...")
+    logger.info(f"Successfully fetched data for {len(all_data)} tickers.")
     featured_data = add_features(combined_data.copy(), horizons=HORIZONS)
 
-    # Perform backtesting to validate the model
-    print("Performing backtest for validation...")
-    # Perform backtesting per ticker to validate the model
-    print("Performing backtest for validation...")
+    logger.info("Performing backtest for validation...")
     per_ticker_precisions = []
-    for tkr, df in featured_data.groupby("ticker"):
+
+    grouped_data = featured_data.groupby("ticker")
+    for tkr, df in tqdm(grouped_data, desc="Backtesting tickers"):
         try:
-            bt = backtest(df, PREDICTORS)
-            prec = precision_score(bt["actual"], bt["predicted"])
-            per_ticker_precisions.append(prec)
-            print(f"{tkr}: {prec:.2%}")
+            # Ensure there's enough data for this ticker to backtest
+            if len(df) < (BACKTEST_START + BACKTEST_STEP):
+                logger.warning(f"Skipping backtest for {tkr}: not enough historical data for a full run.")
+                continue
+
+            bt_results = backtest(df, PREDICTORS, start=BACKTEST_START, step=BACKTEST_STEP)
+
+            # Check if the backtest produced any valid predictions.
+            if bt_results.empty:
+                logger.warning(f"Backtest for {tkr} produced no results, likely due to data gaps.")
+                continue
+
+            # Check if the model ever predicted the stock would go up.
+            if bt_results["predicted"].sum() == 0:
+                logger.warning(f"Model made no 'up' predictions for {tkr}. Precision is 0.")
+                precision = 0.0
+            else:
+                precision = precision_score(bt_results["actual"], bt_results["predicted"])
+
+            per_ticker_precisions.append(precision)
+            logger.debug(f"Backtest precision for {tkr}: {precision:.2%}")
+
+        except ValueError as e:
+            logger.error(f"Backtest failed for {tkr} due to a data issue (likely a single class in a training split): {e}")
+
         except Exception as e:
-            print(f"Backtest skipped for {tkr}: {e}")
+            logger.error(f"An unexpected error occurred during backtest for {tkr}: {e}", exc_info=True)
+
     if not per_ticker_precisions:
-        print("Backtest failed for all tickers. Aborting training.")
+        logger.error("Backtest failed for all tickers. Aborting training.")
         return
-    precision = sum(per_ticker_precisions) / len(per_ticker_precisions)
+
+    avg_precision = sum(per_ticker_precisions) / len(per_ticker_precisions)
     print("\n--- Backtest Validation Complete ---")
     print(f"Backtest Precision (avg across tickers): {precision:.2%}")
 
     # Train the final model on ALL available data
-    print("\nTraining final model on all available data...")
+    logger.info("Training final model on all available data...")
     final_model, _, _ = train_model(featured_data, horizons=HORIZONS)
 
     # Serialize and save the final model
     joblib.dump(final_model, MODEL_SAVE_PATH)
-    print(f"Final model saved to '{MODEL_SAVE_PATH}'")
+    logger.info(f"Final model saved to '{MODEL_SAVE_PATH}'")
 
-    print("\n--- Model Training Pipeline Complete ---")
+    logger.info("--- Model Training Pipeline Complete ---")
 
 if __name__ == "__main__":
     # Import train_model here to avoid circular dependency if it were in __init__
