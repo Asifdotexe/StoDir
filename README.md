@@ -1,6 +1,6 @@
 # StoDir - Stock Direction Forecasting Application
 
-An end-to-end project demonstrating a system for training, evaluating, and deploying a stock market forecasting model.
+An end-to-end system for training, evaluating, and deploying a stock-direction forecasting model.
 
 ![Last Commit](https://img.shields.io/github/last-commit/Asifdotexe/StoDir)
 ![Top Language](https://img.shields.io/github/languages/top/Asifdotexe/StoDir)
@@ -12,10 +12,10 @@ An end-to-end project demonstrating a system for training, evaluating, and deplo
 ## Table of Contents
 
 - [Overview](#overview)
-    - [What is StoDir?](#what-is-stodir)
-    - [Key technical features](#key-technical-features)
-    - [How it works?](#how-it-works)
-    - [Tech stack](#tech-stack)
+  - [What is StoDir?](#what-is-stodir)
+  - [Key technical features](#key-technical-features)
+  - [How it works](#how-it-works)
+  - [Tech stack](#tech-stack)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -38,10 +38,10 @@ StoDir is a machine learning system that forecasts the likely direction (Up or D
 3. Utilized Hugging Face Hub as a model registry to store and version the trained model artifacts, enabling reproducible deployments.
 4. Provides both a Streamlit web interface for interactive use and a command-line interface (CLI) for programmatic access.
 
-### How it works?
+### How it works
 The system is split into two parts: an offline Training Pipeline that builds the model and a live Application that uses the model to make predictions.
 
-```bash
+```text
 
                             +--------------------------+
                             |   Hugging Face Hub       |
@@ -71,7 +71,7 @@ For a more detailed explanation, see the [Architecture Document](docs/SYSTEM_ARC
 1. Using the Deployed Web App
 The easiest way to use the application is to visit the live version hosted on Streamlit Cloud:
 
-> https://stodirforecast.streamlit.app/
+> Visit: [StoDir on Streamlit](https://stodirforecast.streamlit.app/)
 
 ### Installation
 
@@ -82,7 +82,7 @@ The easiest way to use the application is to visit the live version hosted on St
 2. It is recommended to use a virtual environment. Here are two common ways to set it up:
 
     <details> <summary>Using <strong>venv</strong></summary>
-
+    
         # Create virtual environment
         python -m venv venv
 
@@ -116,10 +116,11 @@ pip install -r requirements.txt
     ```bash
     streamlit run app.py
     ```
+    If your Hub repo is private, set `HF_TOKEN` in the environment before starting.
 
 2. **Use the Command-Line Tool**
 
-    First, you need a local model. You can create one by running the training pipeline
+    The CLI uses a local `artifacts/stodir_model.joblib` by default. Create it by running the training pipeline (or point the CLI to a Hub-hosted model).
 
     ```bash
     python train.py
