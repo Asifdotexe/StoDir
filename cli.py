@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 
-from stodir.forecast import fetch_data, add_features, predict_next_day
+from stodir.forecast import fetch_data, add_features, predict_next_day, latest_features
 
 MODEL_PATH = "artifacts/stodir_model.joblib"
 
@@ -30,7 +30,7 @@ def save_plots(raw_data: pd.DataFrame, ticker):
 
 def main():
     """CLI entry point for StoDir."""
-    
+
     if not os.path.exists(MODEL_PATH):
         print(f"Error: Model file not found at '{MODEL_PATH}'.")
         print("Please run the training pipeline first: `python train.py`")
@@ -68,10 +68,13 @@ def main():
             print("Not enough historical data for the configured horizons. Try a different ticker or reduce horizons in config.yaml.")
             return
 
-        prediction = predict_next_day(model, featured_data, PREDICTORS)
+        # Use current day's predictors for inference
+        latest_feats = latest_features(raw_data, horizons=HORIZONS)
+        prediction, probability = predict_next_day(model, latest_feats, PREDICTORS)
 
         print("\n--- Forecast Results ---")
-        print(f"Prediction for next trading day: The stock is likely to go {prediction.upper()}.")
+        conf = probability if prediction == "up" else (1 - probability)
+        print(f"Prediction for next trading day: {prediction.upper()} (confidence: {conf:.2%})")
 
         print("\n--- Saving Plots ---")
         save_plots(raw_data, ticker)
