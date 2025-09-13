@@ -21,7 +21,8 @@ MODEL_FILENAME = "stodir_model.joblib"
 st.set_page_config(
     page_title="StoDir Stock Forecast",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="collapsed",
+    page_icon="📈"
 )
 
 
@@ -119,9 +120,20 @@ def main():
 
         with st.spinner(f"Analyzing {ticker}..."):
             try:
-                # --- Data Fetching and Prediction ---
-                company_info = yf.Ticker(ticker).info
-                company_name = company_info.get('longName', ticker)
+                # time to live set to 24 hours
+                @st.cache_data(ttl=86400)
+                def _get_company_name(ticker: str) -> str:
+                    """Fetches the full company name for a given stock ticker.
+
+                    :param ticker: The stock ticker symbol (e.g., "AAPL").
+                    :returns: The full company name (e.g., "Apple Inc.") or the ticker as a fallback.
+                    """
+                    try:
+                        return yf.Ticker(ticker).info.get("longName", ticker)
+                    except Exception:
+                        return ticker
+
+                company_name = _get_company_name(ticker)
 
                 raw_data = fetch_data(ticker)
                 featured_data = add_features(raw_data.copy(), horizons=HORIZONS)
@@ -141,10 +153,10 @@ def main():
                     st.subheader("Prediction Summary")
                     with st.container(border=True):
                         if prediction == "up":
-                            st.markdown(f"## 📈 **UP**")
+                            st.markdown("## 📈 **UP**")
                             confidence_text = f"The model predicts an upward price movement with **{probability:.2%}** confidence."
                         else:
-                            st.markdown(f"## 📉 **DOWN**")
+                            st.markdown("## 📉 **DOWN**")
                             # Confidence in 'down' is 1 - P('up')
                             confidence_text = f"The model predicts a downward price movement with **{1-probability:.2%}** confidence." # type: ignore
 

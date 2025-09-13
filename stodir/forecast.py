@@ -13,7 +13,9 @@ def fetch_data(ticker: str, history_start: str = "1990-01-01") -> pd.DataFrame:
     :return: DataFrame with historical stock data.
     :raises ValueError: If the ticker is invalid or no data is found.
     """
-    data = yf.Ticker(ticker).history(start=history_start)
+    # Use daily adjusted data for stable features
+    data = yf.Ticker(ticker).history(start=history_start, interval="1d", auto_adjust=True)
+
     if data.empty:
         raise ValueError(f"No data found for ticker '{ticker}'. Please check the symbol.")
     data.columns = data.columns.str.lower()
@@ -86,3 +88,22 @@ def predict_next_day(model: RandomForestClassifier, data: pd.DataFrame, predicto
 
     prediction = "up" if probability > 0.6 else "down"
     return prediction, probability
+
+
+def latest_features(data: pd.DataFrame, horizons: list[int]) -> pd.DataFrame:
+    """Computes the most recent feature values for the prediction model.
+
+    :param data: DataFrame containing historical stock data with a "close" column.
+    :param horizons: A list of integers for the rolling average window sizes.
+    :raises ValueError: If the DataFrame is too short to compute features
+                        for the largest horizon, resulting in NaN values.
+    :returns: A single-row DataFrame with the latest feature values.
+    """
+    df = data.copy()
+    for h in horizons:
+        df[f"{h}_day"] = df["close"].rolling(window=h).mean() / df["close"]
+    preds = [f"{h}_day" for h in horizons]
+    latest = df.iloc[[-1]]
+    if latest[preds].isna().any(axis=None):
+        raise ValueError("Not enough history to compute latest features; reduce horizons.")
+    return latest[preds]
