@@ -30,7 +30,7 @@ def save_plots(raw_data: pd.DataFrame, ticker):
 
 def main():
     """CLI entry point for StoDir."""
-    
+
     if not os.path.exists(MODEL_PATH):
         print(f"Error: Model file not found at '{MODEL_PATH}'.")
         print("Please run the training pipeline first: `python train.py`")
@@ -71,7 +71,7 @@ def main():
         prediction = predict_next_day(model, featured_data, PREDICTORS)
 
         print("\n--- Forecast Results ---")
-        print(f"Prediction for next trading day: The stock is likely to go {prediction.upper()}.")
+        print(f"Prediction for next trading day: The stock is likely to go {prediction.upper()}.") # type: ignore
 
         print("\n--- Saving Plots ---")
         save_plots(raw_data, ticker)

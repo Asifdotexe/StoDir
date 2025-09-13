@@ -86,4 +86,3 @@ def predict_next_day(model: RandomForestClassifier, data: pd.DataFrame, predicto
 
     prediction = "up" if probability > 0.6 else "down"
     return prediction, probability
-
