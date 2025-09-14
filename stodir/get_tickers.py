@@ -10,9 +10,14 @@ from stodir.config import PORTFOLIOS
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] - %(message)s")
 
-def scrape_and_save_tickers(portfolio_config: dict):
-    """Scrapes the list of portfolio tickers for the provided portfolio from Wikipedia."""
+
+def scrape_and_save_tickers(portfolio_config: dict) -> None:
+    """Scrapes the list of portfolio tickers for the provided portfolio from Wikipedia.
+
+    :param portfolio_config: Dictionary containing the portfolio name, link index and additional information like suffixes
+    """
     name = portfolio_config["name"]
     url = portfolio_config["url"]
     ticker_col = portfolio_config["ticker_column_index"]
@@ -48,7 +53,9 @@ def scrape_and_save_tickers(portfolio_config: dict):
 
 
 def main() -> None:
-
+    """
+    Runner function
+    """
     os.makedirs("data", exist_ok=True)
     logging.info("--- Starting Ticker Acquisition ---")
 
