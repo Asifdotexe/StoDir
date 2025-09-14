@@ -4,16 +4,40 @@ import joblib
 import logging
 import pandas as pd
 from tqdm import tqdm
+from datetime import datetime
 from sklearn.metrics import precision_score
 
 from stodir.validation import backtest
 from stodir.forecast import fetch_data, add_features, train_model
 
-MODEL_SAVE_PATH = "artifacts/stodir_model.joblib"
+MODEL_SAVE_PATH = f"artifacts/stodir_model_{datetime.today().strftime('%Y%m%d')}.joblib"
 CONFIG_PATH = "config.yaml"
+DATA_DIR = "data"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__name__)
+
+
+def load_tickers_from_config(config: dict) -> list[str]:
+    """Loads all tickers from the portfolio files specified in the config.
+
+    :param config: Dictionary containing the model configuration file
+    """
+    all_tickers = set()
+    portfolio_files = config["data"]["portfolios"]
+
+    for portfolio_name in portfolio_files:
+        file_path = os.path.join(DATA_DIR, f"{portfolio_name}_tickers.txt")
+        try:
+            with open(file_path, "r") as f:
+                tickers = [line.strip() for line in f if line.strip()]
+                all_tickers.update(tickers)
+
+            logger.info(f"Loaded {len(tickers)} tickers from {file_path}")
+
+        except FileNotFoundError:
+            logger.warning(f"Ticker file not found: {file_path}. Please run get_tickers.py.")
+    return sorted(list(all_tickers))
 
 
 def train_pipeline():
@@ -27,13 +51,18 @@ def train_pipeline():
         config = yaml.safe_load(f)
 
     # Use values from config
-    TRAINING_TICKERS = config["data"]["training_tickers"]
+    TRAINING_TICKERS = load_tickers_from_config(config)
+    if not TRAINING_TICKERS:
+        logger.error("No tickers loaded. Aborting training.")
+        return
+
     HORIZONS = config["features"]["horizons"]
     PREDICTORS = [f"{h}_day" for h in HORIZONS]
     BACKTEST_START = config["backtesting"]["start"]
     BACKTEST_STEP = config["backtesting"]["step"]
 
     logger.info("Processing tickers individually to prevent data leakage...")
+
     all_featured_data = []
     for ticker in tqdm(TRAINING_TICKERS, desc="Fetching & Engineering Features"):
         try:

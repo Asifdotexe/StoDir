@@ -1,101 +1,101 @@
-Adobe Inc-
-Advanced Micro Devices
-Airbnb
-Alphabet Inc- (Class A)
-Alphabet Inc- (Class C)
-Amazon
-American Electric Power
-Amgen
-Analog Devices
-Apple Inc-
-Applied Materials
-AppLovin
-Arm Holdings
-ASML Holding
-AstraZeneca
-Atlassian
-Autodesk
-Automatic Data Processing
-Axon Enterprise
-Baker Hughes
-Biogen
-Booking Holdings
-Broadcom
-Cadence Design Systems
-CDW Corporation
-Charter Communications
-Cintas
-Cisco
-Coca-Cola Europacific Partners
-Cognizant
-Comcast
-Constellation Energy
-Copart
-CoStar Group
-Costco
-CrowdStrike
-CSX Corporation
-Datadog
-DexCom
-Diamondback Energy
-DoorDash
-Electronic Arts
-Exelon
-Fastenal
-Fortinet
-GE HealthCare
-Gilead Sciences
-GlobalFoundries
-Honeywell
-Idexx Laboratories
-Intel
-Intuit
-Intuitive Surgical
-Keurig Dr Pepper
-KLA Corporation
-Kraft Heinz
-Lam Research
-Linde plc
-Lululemon
-Marriott International
-Marvell Technology
-Mercado Libre
-Meta Platforms
-Microchip Technology
-Micron Technology
-Microsoft
-MicroStrategy
-Mondelez International
-Monster Beverage
-Netflix, Inc-
-Nvidia
-NXP Semiconductors
-O'Reilly Automotive
-Old Dominion Freight Line
-Onsemi
-Paccar
-Palantir Technologies
-Palo Alto Networks
-Paychex
-PayPal
-PDD Holdings
-PepsiCo
-Qualcomm
-Regeneron Pharmaceuticals
-Roper Technologies
-Ross Stores
-Shopify
-Starbucks
-Synopsys
-T-Mobile US
-Take-Two Interactive
-Tesla, Inc-
-Texas Instruments
-Thomson Reuters
-Trade Desk (The)
-Verisk Analytics
-Vertex Pharmaceuticals
-Warner Bros- Discovery
-Workday, Inc-
-Xcel Energy
-Zscaler
+ADBE
+AMD
+ABNB
+GOOGL
+GOOG
+AMZN
+AEP
+AMGN
+ADI
+AAPL
+AMAT
+APP
+ARM
+ASML
+AZN
+TEAM
+ADSK
+ADP
+AXON
+BKR
+BIIB
+BKNG
+AVGO
+CDNS
+CDW
+CHTR
+CTAS
+CSCO
+CCEP
+CTSH
+CMCSA
+CEG
+CPRT
+CSGP
+COST
+CRWD
+CSX
+DDOG
+DXCM
+FANG
+DASH
+EA
+EXC
+FAST
+FTNT
+GEHC
+GILD
+GFS
+HON
+IDXX
+INTC
+INTU
+ISRG
+KDP
+KLAC
+KHC
+LRCX
+LIN
+LULU
+MAR
+MRVL
+MELI
+META
+MCHP
+MU
+MSFT
+MSTR
+MDLZ
+MNST
+NFLX
+NVDA
+NXPI
+ORLY
+ODFL
+ON
+PCAR
+PLTR
+PANW
+PAYX
+PYPL
+PDD
+PEP
+QCOM
+REGN
+ROP
+ROST
+SHOP
+SBUX
+SNPS
+TMUS
+TTWO
+TSLA
+TXN
+TRI
+TTD
+VRSK
+VRTX
+WBD
+WDAY
+XEL
+ZS

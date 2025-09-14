@@ -7,7 +7,7 @@ PORTFOLIOS = [
     {
         "name": "nasdaq100",
         "url": "https://en.wikipedia.org/wiki/NASDAQ-100",
-        "ticker_column_index": 1, # Ticker is in the second column
+        "ticker_column_index": 0, # Ticker is in the second column
     },
     {
         "name": "nifty50",
