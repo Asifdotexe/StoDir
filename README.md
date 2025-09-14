@@ -120,6 +120,7 @@ After installing, you may need to restart your terminal for the poetry command t
 
 2. Install Dependencies
 Once you have the code, use Poetry to create a virtual environment and install all the necessary packages from the poetry.lock file. This guarantees a reproducible setup.
+Ensure `poetry.lock` is committed to the repository for consistency across machines.
 
     ```bash
     poetry install

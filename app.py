@@ -12,7 +12,7 @@ from huggingface_hub.errors import OfflineModeIsEnabled
 from huggingface_hub.utils import RepositoryNotFoundError, EntryNotFoundError, HfHubHTTPError
 from requests.exceptions import RequestException
 
-from stodir.forecast import fetch_data, add_features, predict_next_day
+from stodir.forecast import fetch_data, predict_next_day, latest_features
 
 REPO_ID = "AsifSayyed/stodir-forecast-model"
 CONFIG_FILENAME = "config.yaml"
@@ -61,6 +61,20 @@ def load_config_and_model():
     except OfflineModeIsEnabled:
         st.error("Error: Hugging Face Hub offline mode is enabled. Disable it or provide local artifacts.")
         return None, None
+
+
+# time to live set to 24 hours
+@st.cache_data(ttl=86400)
+def _get_company_name(ticker: str) -> str:
+    """Fetches the full company name for a given stock ticker.
+
+    :param ticker: The stock ticker symbol (e.g., "AAPL").
+    :returns: The full company name (e.g., "Apple Inc.") or the ticker as a fallback.
+    """
+    try:
+        return yf.Ticker(ticker).info.get("longName", ticker)
+    except Exception:
+        return ticker
 
 
 def plot_candlestick(data, ticker):
@@ -115,7 +129,7 @@ def main():
     except KeyError as e:
         st.error(f"Invalid config.yaml: missing key {e}. Please update the file.")
         st.stop()
-        
+
     ticker = st.selectbox("Select a stock for forecasting:", TRAINING_TICKERS)
 
     if st.button("Get Forecast", type="secondary", use_container_width=True):
@@ -125,27 +139,14 @@ def main():
 
         with st.spinner(f"Analyzing {ticker}..."):
             try:
-                # time to live set to 24 hours
-                @st.cache_data(ttl=86400)
-                def _get_company_name(ticker: str) -> str:
-                    """Fetches the full company name for a given stock ticker.
-
-                    :param ticker: The stock ticker symbol (e.g., "AAPL").
-                    :returns: The full company name (e.g., "Apple Inc.") or the ticker as a fallback.
-                    """
-                    try:
-                        return yf.Ticker(ticker).info.get("longName", ticker)
-                    except Exception:
-                        return ticker
-
                 company_name = _get_company_name(ticker)
 
                 raw_data = fetch_data(ticker)
-                featured_data = add_features(raw_data.copy(), horizons=HORIZONS)
+                fresh_features = latest_features(raw_data, horizons=HORIZONS)
 
                 # We need to update predict_next_day to return probability
-                prediction, probability = predict_next_day(model, featured_data, PREDICTORS)
-                latest_features = featured_data[PREDICTORS].iloc[-1]
+                prediction, probability = predict_next_day(model, fresh_features, PREDICTORS)
+                current_features = fresh_features[PREDICTORS].iloc[-1]
 
                 # --- Main Dashboard Layout ---
                 st.header(f"Forecast for {company_name} ({ticker})")
@@ -163,7 +164,7 @@ def main():
                         else:
                             st.markdown("## 📉 **DOWN**")
                             # Confidence in 'down' is 1 - P('up')
-                            confidence_text = f"The model predicts a downward price movement with **{1-probability:.2%}** confidence." # type: ignore
+                            confidence_text = f"The model predicts a downward price movement with **{1-probability:.2%}** confidence."
 
                         st.write(confidence_text)
                         st.caption("Prediction for the next trading day.")
@@ -172,7 +173,8 @@ def main():
                     st.subheader("Model Insights")
                     with st.container(border=True):
                         st.write("The prediction was based on these feature values:")
-                        for horizon, value in zip(HORIZONS, latest_features):
+                        for horizon in HORIZONS:
+                            value = float(current_features[f"{horizon}_day"])
                             st.metric(
                                 label=f"Price vs. {horizon}-Day Avg.",
                                 value=f"{value:.3f}"
