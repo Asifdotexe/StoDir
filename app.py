@@ -108,10 +108,14 @@ def main():
         st.error("Application cannot start because the model or configuration failed to load.")
         st.stop()
 
-    HORIZONS = config["features"]["horizons"]
-    PREDICTORS = [f"{h}_day" for h in HORIZONS]
-    TRAINING_TICKERS = config["data"]["training_tickers"]
-
+    try:
+        HORIZONS = config["features"]["horizons"]
+        PREDICTORS = [f"{h}_day" for h in HORIZONS]
+        TRAINING_TICKERS = config["data"]["training_tickers"]
+    except KeyError as e:
+        st.error(f"Invalid config.yaml: missing key {e}. Please update the file.")
+        st.stop()
+        
     ticker = st.selectbox("Select a stock for forecasting:", TRAINING_TICKERS)
 
     if st.button("Get Forecast", type="secondary", use_container_width=True):
