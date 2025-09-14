@@ -1,5 +1,3 @@
-# FILE: forecast.py
-
 import pandas as pd
 import yfinance as yf
 from sklearn.ensemble import RandomForestClassifier
@@ -7,12 +5,17 @@ from sklearn.metrics import precision_score
 
 
 def fetch_data(ticker: str, history_start: str = "1990-01-01") -> pd.DataFrame:
-    """Fetches historical stock data for a given ticker using Yahoo Finance.
+    """
+    Fetches historical stock data for a given ticker using Yahoo Finance.
 
     :param ticker: Stock ticker symbol (e.g., 'AAPL').
     :param history_start: Date to start fetching historical data (YYYY-MM-DD).
+    :return: DataFrame with historical stock data.
+    :raises ValueError: If the ticker is invalid or no data is found.
     """
-    data = yf.Ticker(ticker).history(start=history_start)
+    # Use daily adjusted data for stable features
+    data = yf.Ticker(ticker).history(start=history_start, interval="1d", auto_adjust=True)
+
     if data.empty:
         raise ValueError(f"No data found for ticker '{ticker}'. Please check the symbol.")
     data.columns = data.columns.str.lower()
@@ -20,7 +23,8 @@ def fetch_data(ticker: str, history_start: str = "1990-01-01") -> pd.DataFrame:
 
 
 def add_features(data: pd.DataFrame, horizons: list[int] = None) -> pd.DataFrame:
-    """Adds target variable and rolling average features to the data.
+    """
+    Adds target variable and rolling average features to the data.
 
     :param data: Historical stock DataFrame.
     :param horizons: List of horizons to calculate rolling averages.
@@ -36,12 +40,12 @@ def add_features(data: pd.DataFrame, horizons: list[int] = None) -> pd.DataFrame
         rolling_average = data["close"].rolling(window=horizon).mean()
         data[f"{horizon}_day"] = rolling_average / data["close"]
 
-    # Drop rows with NaN values that were created by rolling averages
     return data.dropna()
 
 
 def train_model(data: pd.DataFrame, horizons: list[int] = None) -> tuple[RandomForestClassifier, float, list[str]]:
-    """Trains a RandomForestClassifier and evaluates its precision.
+    """
+    Trains a RandomForestClassifier and evaluates its precision.
 
     :param data: Feature-engineered stock data.
     :param horizons: Horizons used for rolling average features.
@@ -52,7 +56,6 @@ def train_model(data: pd.DataFrame, horizons: list[int] = None) -> tuple[RandomF
 
     predictors = [f"{h}_day" for h in horizons]
 
-    # Split data into training and testing sets
     train_data = data.iloc[:-100]
     test_data = data.iloc[-100:]
 
@@ -69,16 +72,38 @@ def train_model(data: pd.DataFrame, horizons: list[int] = None) -> tuple[RandomF
     return model, precision, predictors
 
 
-def predict_next_day(model: RandomForestClassifier, data: pd.DataFrame, predictors: list[str]) -> str:
-    """Predicts the stock's direction for the next trading day.
+def predict_next_day(model: RandomForestClassifier, data: pd.DataFrame, predictors: list[str]) -> tuple[str, float]:
+    """
+    Predicts the stock's direction and the model's confidence.
 
     :param model: Trained RandomForestClassifier.
     :param data: The full feature-engineered stock data.
     :param predictors: List of feature names used for prediction.
-    :return: 'up' if predicted to rise, 'down' otherwise.
+    :return: A tuple containing the prediction ('up' or 'down') and the probability of the positive class ('up').
     """
     latest_data = data.iloc[[-1]]
+    # Predict_proba returns probabilities for [class_0, class_1]
+    # We want the probability for class_1 ('up')
     probability = model.predict_proba(latest_data[predictors])[0][1]
 
-    # Predict "up" if the model is > 60% confident, otherwise predict "down"
-    return "up" if probability > 0.6 else "down"
+    prediction = "up" if probability > 0.6 else "down"
+    return prediction, probability
+
+
+def latest_features(data: pd.DataFrame, horizons: list[int]) -> pd.DataFrame:
+    """Computes the most recent feature values for the prediction model.
+
+    :param data: DataFrame containing historical stock data with a "close" column.
+    :param horizons: A list of integers for the rolling average window sizes.
+    :raises ValueError: If the DataFrame is too short to compute features
+                        for the largest horizon, resulting in NaN values.
+    :returns: A single-row DataFrame with the latest feature values.
+    """
+    df = data.copy()
+    for h in horizons:
+        df[f"{h}_day"] = df["close"].rolling(window=h).mean() / df["close"]
+    preds = [f"{h}_day" for h in horizons]
+    latest = df.iloc[[-1]]
+    if latest[preds].isna().any(axis=None):
+        raise ValueError("Not enough history to compute latest features; reduce horizons.")
+    return latest[preds]
