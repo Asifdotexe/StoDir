@@ -189,8 +189,6 @@ pyvenv.cfg
 # PDM
 __pypackages__/
 pdm.lock
-# Poetry
-poetry.lock
 # Hatch
 .hatch
 # Nox
