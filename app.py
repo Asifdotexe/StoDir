@@ -8,7 +8,8 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 from huggingface_hub import hf_hub_download
-from huggingface_hub.errors import RepositoryNotFoundError, EntryNotFoundError, HfHubHTTPError, OfflineModeIsEnabled
+from huggingface_hub.errors import OfflineModeIsEnabled
+from huggingface_hub.utils import RepositoryNotFoundError, EntryNotFoundError, HfHubHTTPError
 from requests.exceptions import RequestException
 
 from stodir.forecast import fetch_data, add_features, predict_next_day
