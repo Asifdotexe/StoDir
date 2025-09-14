@@ -68,10 +68,47 @@ For a more detailed explanation, see the [Architecture Document](docs/SYSTEM_ARC
 
 ### Prerequisites
 
-1. Using the Deployed Web App
+1. **Using the Deployed Web App** <br>
 The easiest way to use the application is to visit the live version hosted on Streamlit Cloud:
 
-> Visit: [StoDir on Streamlit](https://stodirforecast.streamlit.app/)
+    > Visit: [StoDir on Streamlit](https://stodirforecast.streamlit.app/)
+
+2. **Running Locally** <br>
+To run the project on your local machine, you will need to have Poetry installed. It is a modern dependency and environment manager for Python. The official installer is the recommended method.
+
+<details>
+<summary><strong>Install Poetry (Click to expand)</strong></summary>
+
+<br/>
+
+**Official Method (Recommended):**
+- macOS / Linux / WSL:
+    ```bash
+    curl -sSL [https://install.python-poetry.org](https://install.python-poetry.org) | python3 -
+    ```
+- Windows (PowerShell):
+    ```bash
+    (Invoke-WebRequest -Uri [https://install.python-poetry.org](https://install.python-poetry.org) -UseBasicParsing).Content | py -
+    ```
+
+**Alternative Methods:**
+
+- Using Homebrew (macOS/Linux):
+
+    ```bash
+    brew install poetry
+    ```
+
+- Using pipx (Windows/macOS/Linux):
+First, ensure pipx is installed (pip install pipx), then:
+
+    ```bash
+    pipx install poetry
+    ```
+
+After installing, you may need to restart your terminal for the poetry command to be available.
+
+</details>
 
 ### Installation
 
@@ -79,42 +116,24 @@ The easiest way to use the application is to visit the live version hosted on St
    ```bash
    git clone https://github.com/Asifdotexe/StoDir.git
    cd StoDir
-2. It is recommended to use a virtual environment. Here are two common ways to set it up:
+   ```
 
-    <details> <summary>Using <strong>venv</strong></summary>
-    
-        # Create virtual environment
-        python -m venv venv
+2. Install Dependencies
+Once you have the code, use Poetry to create a virtual environment and install all the necessary packages from the poetry.lock file. This guarantees a reproducible setup.
 
-        # Activate on Windows
-        venv\Scripts\activate
-
-        # Activate on macOS/Linux
-        source venv/bin/activate
-
-    </details> <details> <summary>Using <strong>conda</strong></summary>
-
-        # Create new conda environment
-        conda create -n stodir-env python=3.12
-
-        # Activate the environment
-        conda activate stodir-env
-
-    </details>
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+    ```bash
+    poetry install
+    ```
 
 ### Usage
+All commands should be prefixed with poetry run to ensure they execute within the project's managed virtual environment.
 
 1. **Run the Web App**
 
     Starting a local web server. The app uses the pre-trained model from Hugging Face.
 
     ```bash
-    streamlit run app.py
+    poetry run streamlit run app.py
     ```
     If your Hub repo is private, set `HF_TOKEN` in the environment before starting.
 
@@ -123,12 +142,13 @@ pip install -r requirements.txt
     The CLI uses a local `artifacts/stodir_model.joblib` by default. Create it by running the training pipeline (or point the CLI to a Hub-hosted model).
 
     ```bash
-    python train.py
+    poetry run python train.py
     ```
     Then, get a forecast directly in your terminal:
 
     ```bash
-    python cli.py GOOGL
+    # Example: Get a forecast for Google
+    poetry run python cli.py GOOGL
     ```
 
 ## Documentation

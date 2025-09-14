@@ -2,7 +2,7 @@
 name = "stodir"
 version = "0.1.0"
 description = "A stock direction forecasting application."
-authors = ["Your Name <you@example.com>"]
+authors = ["Asif Sayyed asifdotexe@gmail.com"]
 license = "MIT"
 readme = "README.md"
 
