@@ -20,6 +20,7 @@ huggingface-hub = "^0.23.4"
 tqdm = "^4.66.4"
 beautifulsoup4 = "^4.13.5"
 requests = "^2.32.5"
+pyarrow = "^21.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.2.5"
