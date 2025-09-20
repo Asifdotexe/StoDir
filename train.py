@@ -1,3 +1,4 @@
+import io
 import os
 import yaml
 import joblib
@@ -16,6 +17,16 @@ DATA_DIR = "data"
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__name__)
+
+log_capture = io.StringIO()
+class WarningErrorHandler(logging.StreamHandler):
+    def emit(self, record):
+        if record.levelno >= logging.WARNING:  # WARNING=30, ERROR=40
+            log_capture.write(self.format(record) + "\n")
+
+we_handler = WarningErrorHandler()
+we_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s"))
+logger.addHandler(we_handler)
 
 
 def load_tickers_from_config(config: dict) -> list[str]:
@@ -137,6 +148,12 @@ def train_pipeline():
                  "horizons": HORIZONS,
                  "predictors": PREDICTORS,}, MODEL_SAVE_PATH)
     logger.info(f"Final model saved to '{MODEL_SAVE_PATH}'")
+
+    # Write collected warnings/errors to a file
+    error_log_path = f"artifacts/training_log_{datetime.today().strftime('%Y%m%d')}.txt"
+    with open(error_log_path, "w") as f:
+        f.write(log_capture.getvalue())
+    logger.info(f"Warnings/Errors log saved to '{error_log_path}'")
 
     logger.info("--- Model Training Pipeline Complete ---")
 
