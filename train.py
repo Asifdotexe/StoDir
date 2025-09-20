@@ -77,8 +77,9 @@ def train_pipeline():
     all_featured_data = []
     for ticker in tqdm(TRAINING_TICKERS, desc="Fetching & Engineering Features"):
         try:
-            # Fetch data for a single ticker
-            data = fetch_data(ticker)
+            # 2010 captures the post 2008 financial crisis market, stable representation of the data
+            # While also keeping data rich with 15 years of data
+            data = fetch_data(ticker, history_start="2010-01-01")
 
             # Engineer features on that single ticker's data
             # This ensures shift() operations do not cross ticker boundaries.

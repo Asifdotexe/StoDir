@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import precision_score
 
 
-def fetch_data(ticker: str, history_start: str = "1990-01-01") -> pd.DataFrame:
+def fetch_data(ticker: str, history_start: str = "2010-01-01") -> pd.DataFrame:
     """
     Fetches historical stock data for a given ticker using Yahoo Finance.
 
