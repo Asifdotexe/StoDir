@@ -12,6 +12,7 @@ features:
   # 60 days: 2 months for business cycle
   # 250 days: Yearly view
   # 1000 days Long term view
+  start_date: "2010-01-01"
   horizons: [2, 5, 60, 250, 1000]
 
 data:

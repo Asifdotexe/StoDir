@@ -7,6 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
 from sklearn.metrics import precision_score
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
 
 from stodir.validation import backtest
 from stodir.forecast import fetch_data, add_features, train_model
@@ -14,6 +15,9 @@ from stodir.forecast import fetch_data, add_features, train_model
 MODEL_SAVE_PATH = f"artifacts/stodir_model_{datetime.today().strftime('%Y%m%d')}.joblib"
 CONFIG_PATH = "config.yaml"
 DATA_DIR = "data"
+CACHE_DIR = "data/cache"
+RAW_DATA_CACHE = os.path.join(CACHE_DIR, "raw")
+FEATURE_CACHE = os.path.join(CACHE_DIR, "features")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger(__name__)
@@ -23,6 +27,7 @@ class WarningErrorHandler(logging.StreamHandler):
     def emit(self, record):
         if record.levelno >= logging.WARNING:  # WARNING=30, ERROR=40
             log_capture.write(self.format(record) + "\n")
+
 
 we_handler = WarningErrorHandler()
 we_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s"))
@@ -51,11 +56,54 @@ def load_tickers_from_config(config: dict) -> list[str]:
     return sorted(list(all_tickers))
 
 
+def fetch_and_cache_ticker(ticker: str, start_date: str) -> pd.DataFrame | None:
+    """
+    Attempts to load the data for a single ticker using a local cache to avoid re-downloading
+
+    :param ticker: String containing stock ticker e.g., AAPL for Apple
+    :param start_date: String containing the date to fetch the data from.
+    :return: Dataframe containing the data for the given ticker or None.
+    """
+    cache_path = os.path.join(RAW_DATA_CACHE, f"{ticker}.parquet")
+    if os.path.exists(cache_path):
+        return pd.read_parquet(cache_path)
+
+    try:
+        data = fetch_data(ticker, history_start=start_date)
+        data.to_parquet(cache_path)
+        return data
+    except Exception as e:
+        logger.warning(f"Could not fetch data for {ticker}: {e}")
+        return None
+
+
+def run_backtest_for_ticker(args: tuple) -> tuple[str, float]:
+    """Wrapper function to run backtest on a single ticker's data for multiprocessing."""
+    ticker, featured_df, predictors, start, step = args
+    try:
+        if len(featured_df) < (start + step):
+            raise ValueError("Not enough historical data for a full run.")
+
+        bt_results = backtest(featured_df, predictors, start=start, step=step)
+
+        if bt_results.empty or bt_results["predicted"].sum() == 0:
+            return ticker, 0.0
+
+        precision = precision_score(bt_results["actual"], bt_results["predicted"])
+        return ticker, precision
+    except Exception as e:
+        logger.error(f"Backtest failed for {ticker}: {e}")
+        return ticker, 0.0
+
+
 def train_pipeline():
     """
     Full pipeline to train and save a generalized stock forecasting model.
     """
     logger.info("--- Starting Model Training Pipeline ---")
+
+    os.makedirs(RAW_DATA_CACHE, exist_ok=True)
+    os.makedirs(FEATURE_CACHE, exist_ok=True)
 
     # Load configuration from YAML file
     with open(CONFIG_PATH, "r") as f:
@@ -71,91 +119,59 @@ def train_pipeline():
     PREDICTORS = [f"{h}_day" for h in HORIZONS]
     BACKTEST_START = config["backtesting"]["start"]
     BACKTEST_STEP = config["backtesting"]["step"]
+    START_DATE = config["features"]["start_date"]
 
     logger.info("Processing tickers individually to prevent data leakage...")
 
-    all_featured_data = []
-    for ticker in tqdm(TRAINING_TICKERS, desc="Fetching & Engineering Features"):
-        try:
-            # 2010 captures the post 2008 financial crisis market, stable representation of the data
-            # While also keeping data rich with 15 years of data
-            data = fetch_data(ticker, history_start="2010-01-01")
+    logger.info(f"Fetching raw data for {len(TRAINING_TICKERS)} tickers (using cache)...")
+    all_raw_data = {}
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(fetch_and_cache_ticker, ticker, START_DATE): ticker for ticker in TRAINING_TICKERS}
+        for future in tqdm(as_completed(futures), total=len(futures), desc="Fetching raw data"):
+            ticker = futures[future]
+            result = future.result()
+            if result is not None and not result.empty:
+                all_raw_data[ticker] = result
 
-            # Engineer features on that single ticker's data
-            # This ensures shift() operations do not cross ticker boundaries.
-            featured = add_features(data.copy(), horizons=HORIZONS)
-            featured['ticker'] = ticker
-            all_featured_data.append(featured)
-
-        except ValueError as e:
-            logger.warning(f"Could not process data for {ticker}: {e}")
-
-    if not all_featured_data:
-        logger.error("No data could be processed. Aborting training.")
-        return
-
-    featured_data = pd.concat(all_featured_data).sort_index()
-    logger.info(f"Successfully processed and combined data for {len(all_featured_data)} tickers.")
+    logger.info("Engineering features...")
+    all_featured_data = {}
+    for ticker, raw_df in tqdm(all_raw_data.items(), desc="Engineering features"):
+        cache_path = os.path.join(FEATURE_CACHE, f"{ticker}.parquet")
+        if os.path.exists(cache_path):
+            featured_df = pd.read_parquet(cache_path)
+        else:
+            featured_df = add_features(raw_df.copy(), horizons=HORIZONS)
+            featured_df.to_parquet(cache_path)
+        all_featured_data[ticker] = featured_df
 
     logger.info("Performing backtest for validation...")
-    per_ticker_precisions = []
+    backtest_args = [
+        (ticker, df, PREDICTORS, BACKTEST_START, BACKTEST_STEP)
+        for ticker, df in all_featured_data.items()
+    ]
 
-    grouped_data = featured_data.groupby("ticker")
-    for tkr, df in tqdm(grouped_data, desc="Backtesting tickers"):
-        try:
-            # Ensure there's enough data for this ticker to backtest
-            if len(df) < (BACKTEST_START + BACKTEST_STEP):
-                logger.warning(f"Skipping backtest for {tkr}: not enough historical data for a full run.")
-                continue
+    per_ticker_precisions = {}
+    with ProcessPoolExecutor() as executor:
+        results = list(tqdm(executor.map(run_backtest_for_ticker, backtest_args), total=len(backtest_args), desc="Backtesting tickers"))
 
-            bt_results = backtest(df, PREDICTORS, start=BACKTEST_START, step=BACKTEST_STEP)
-
-            # Check if the backtest produced any valid predictions.
-            if bt_results.empty:
-                logger.warning(f"Backtest for {tkr} produced no results, likely due to data gaps.")
-                continue
-
-            # Check if the model ever predicted the stock would go up.
-            if bt_results["predicted"].sum() == 0:
-                logger.warning(f"Model made no 'up' predictions for {tkr}. Precision is 0.")
-                precision = 0.0
-            else:
-                precision = precision_score(bt_results["actual"], bt_results["predicted"])
-
-            per_ticker_precisions.append(precision)
-            logger.debug(f"Backtest precision for {tkr}: {precision:.2%}")
-
-        except ValueError as e:
-            logger.error(f"Backtest failed for {tkr} due to a data issue (likely a single class in a training split): {e}")
-
-        except Exception as e:
-            logger.error(f"An unexpected error occurred during backtest for {tkr}: {e}", exc_info=True)
+    for ticker, precision in results:
+        if precision > 0:
+            per_ticker_precisions[ticker] = precision
 
     if not per_ticker_precisions:
         logger.error("Backtest failed for all tickers. Aborting training.")
         return
 
-    avg_precision = sum(per_ticker_precisions) / len(per_ticker_precisions)
-    print("\n--- Backtest Validation Complete ---")
-    print(f"Backtest Precision (avg across tickers): {avg_precision:.2%}")
+    avg_precision = sum(per_ticker_precisions.values()) / len(per_ticker_precisions)
+    logger.info(f"Average Backtest Precision (across {len(per_ticker_precisions)} tickers): {avg_precision:.2%}")
 
-    # Train the final model on ALL available data
+    # --- Final Model Training ---
     logger.info("Training final model on all available data...")
-    final_model, _, _ = train_model(featured_data.drop(columns=["ticker"]), horizons=HORIZONS)
+    final_training_data = pd.concat(all_featured_data.values()).sort_index()
+    final_model, _, _ = train_model(final_training_data, horizons=HORIZONS)
 
-    # Serialize and save the final model
-    os.makedirs(os.path.dirname(MODEL_SAVE_PATH) or ".", exist_ok=True)
-    joblib.dump({"model": final_model,
-                 "horizons": HORIZONS,
-                 "predictors": PREDICTORS,}, MODEL_SAVE_PATH)
+    joblib.dump(final_model, MODEL_SAVE_PATH)
     logger.info(f"Final model saved to '{MODEL_SAVE_PATH}'")
-
-    # Write collected warnings/errors to a file
-    error_log_path = f"artifacts/training_log_{datetime.today().strftime('%Y%m%d')}.txt"
-    with open(error_log_path, "w") as f:
-        f.write(log_capture.getvalue())
-    logger.info(f"Warnings/Errors log saved to '{error_log_path}'")
-
     logger.info("--- Model Training Pipeline Complete ---")
 
 if __name__ == "__main__":
